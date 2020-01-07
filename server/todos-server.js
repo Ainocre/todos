@@ -88,7 +88,7 @@ app
 
             return res.send({
                 user: fetchedUser,
-                categories: await categoriesDB.find({ userId: user._id }),
+                categories: await categoriesDB.find({ userId: user._id, $not: { removed: true } }),
             })
         }
         if (service === 'changePwd') {
@@ -122,8 +122,8 @@ app
         if (service === 'categories') {
             if (method === 'read') {
                 return res.send(await categoriesDB.find({
-                    $not: { removed: true },
                     ...data,
+                    $not: { removed: true },
                     userId: user._id,
                 }))
             }
@@ -135,11 +135,12 @@ app
                 }))
             }
             if (method === 'update') {
-                await categoriesDB.update({ userId: user._id, _id: data._id }, { $set: omit(data, ['userId']) })
+                await categoriesDB.update({ userId: user._id, _id: data.category._id }, { $set: omit(data.category, ['userId']) })
                 return res.send('ok')
             }
             if (method === 'delete') {
-
+                await categoriesDB.update({ userId: user._id, _id: data.category._id }, { $set: { removed: true } })
+                return res.send('ok')
             }
         }
 

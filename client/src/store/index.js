@@ -10,6 +10,7 @@ const store = new Vuex.Store({
     categories: [],
     currentCategory: {},
     isConnected: false,
+    isReady: false,
     tasks: {},
     user: null,
   },
@@ -19,7 +20,7 @@ const store = new Vuex.Store({
       return values(state.tasks).filter(task => !task.done && task.categoryId === state.currentCategory._id)
     },
     doneTasks(state) {
-      return values(state.tasks).filter(task => task.done && task.categoryId === state.currentCategory._id)
+      return quantity => values(state.tasks).filter(task => task.done && task.categoryId === state.currentCategory._id).slice(0, quantity)
     },
 
     
@@ -31,6 +32,9 @@ const store = new Vuex.Store({
   mutations: {
     setUser(state, user) {
       state.user = user
+    },
+    isReady(state) {
+      state.isReady = true
     },
     setCategories(state, categories) {
       state.categories = categories
@@ -58,6 +62,10 @@ const store = new Vuex.Store({
     updateCategory(state, newCategory) {
       const index = state.categories.findIndex(cat => cat._id === newCategory._id)
       state.categories.splice(index, 1, newCategory)
+    },
+    deleteCategory(state, category) {
+      const index = state.categories.findIndex(cat => cat._id === category._id)
+      state.categories.splice(index, 1)
     },
 
 
@@ -125,6 +133,7 @@ const store = new Vuex.Store({
       })
         .then(({ data }) => {
           ctx.commit('mergeTasks', data)
+          ctx.commit('isReady')
         })
     },
 
@@ -146,7 +155,17 @@ const store = new Vuex.Store({
         data: { category },
       })
         .then(() => {
-          ctx.commit('update', category)
+          ctx.commit('updateCategory', category)
+        })
+    },
+    deleteCategory(ctx, category) {
+      server.ql({
+        service: 'categories',
+        method: 'delete',
+        data: { category },
+      })
+        .then(() => {
+          ctx.commit('deleteCategory', category)
         })
     },
 
