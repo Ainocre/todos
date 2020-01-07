@@ -34,7 +34,9 @@ const store = new Vuex.Store({
       state.user = user
     },
     isReady(state) {
-      state.isReady = true
+      setTimeout(() => {
+        state.isReady = true
+      }, 1000)
     },
     setCategories(state, categories) {
       state.categories = categories
@@ -91,6 +93,10 @@ const store = new Vuex.Store({
             .then(() => {
               ctx.commit('changeCurrentCategory', categories[0])
             })
+        })
+        .catch((err) => {
+          ctx.commit('isReady')
+          throw err
         })
     },
     signin(ctx, { email, pwd }) {
