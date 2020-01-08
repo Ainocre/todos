@@ -8,7 +8,7 @@ Vue.use(Vuex)
 const store = new Vuex.Store({
   state: {
     categories: [],
-    currentCategory: {},
+    currentCategory: { _id: 'starred' },
     isConnected: false,
     isReady: false,
     tasks: {},
@@ -16,17 +16,28 @@ const store = new Vuex.Store({
   },
 
   getters: {
+    starredTodos(state) {
+      return values(state.tasks).filter(todo => todo.starred && !todo.done)
+    },
     todoTasks(state) {
-      return values(state.tasks).filter(task => !task.done && task.categoryId === state.currentCategory._id)
+      return category => {
+        const todos = category._id === 'starred'
+          ? values(state.tasks).filter(todo => todo.starred && !todo.done)
+          : values(state.tasks).filter(task => !task.done && task.categoryId === category._id)
+        return [
+          ...todos.filter(todo => todo.starred),
+          ...todos.filter(todo => !todo.starred),
+        ]
+      }
     },
     doneTasks(state) {
-      return quantity => values(state.tasks).filter(task => task.done && task.categoryId === state.currentCategory._id).slice(0, quantity)
+      return (category, quantity) => values(state.tasks).filter(task => task.done && task.categoryId === category._id).slice(0, quantity)
     },
 
     
     doCurrentCategoryExists(state) {
-      return state.categories.find(cat => state.currentCategory._id === cat._id)
-    }
+      return state.currentCategory._id === 'starred' || state.categories.find(cat => state.currentCategory._id === cat._id)
+    },
   },
 
   mutations: {
@@ -34,9 +45,7 @@ const store = new Vuex.Store({
       state.user = user
     },
     isReady(state) {
-      setTimeout(() => {
-        state.isReady = true
-      }, 1000)
+      state.isReady = true
     },
     setCategories(state, categories) {
       state.categories = categories
@@ -85,14 +94,12 @@ const store = new Vuex.Store({
       server.ql({
         service: 'fetchStart',
       })
-        .then(({ data: { user, categories } }) => {
+        .then(({ data: { user, categories, todos } }) => {
+          ctx.commit('mergeTasks', todos)
           ctx.commit('setUser', user)
           ctx.commit('setCategories', categories)
           ctx.commit('isConnected', true)
-          ctx.dispatch('fetchTasks', { category: categories[0] })
-            .then(() => {
-              ctx.commit('changeCurrentCategory', categories[0])
-            })
+          ctx.commit('isReady', true)
         })
         .catch((err) => {
           ctx.commit('isReady')
@@ -128,19 +135,6 @@ const store = new Vuex.Store({
         service: 'changePwd',
         data: { pwd },
       })
-    },
-
-
-    fetchTasks(ctx, { category }) {
-      server.ql({
-        service: 'tasks',
-        method: 'read',
-        data: { categoryId: category._id },
-      })
-        .then(({ data }) => {
-          ctx.commit('mergeTasks', data)
-          ctx.commit('isReady')
-        })
     },
 
 

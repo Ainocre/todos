@@ -89,6 +89,7 @@ app
             return res.send({
                 user: fetchedUser,
                 categories: await categoriesDB.find({ userId: user._id, $not: { removed: true } }),
+                todos: await todosDB.find({ userId: user._id, $not: { removed: true } })
             })
         }
         if (service === 'changePwd') {
@@ -100,7 +101,6 @@ app
                 return res.send(await todosDB.find({
                     userId: user._id,
                     categoryId: data.categoryId,
-                    $not: { removed: true },
                 }))
             }
             if (method === 'create') {

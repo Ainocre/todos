@@ -23,21 +23,22 @@
       </q-header>
 
       <q-drawer
-        :breakpoint="500"
+        :breakpoint="400"
+        :width="350"
         bordered
         content-class="bg-grey-3"
         show-if-above
         v-model="drawer"
       >
         <q-scroll-area class="fit">
-          <q-list separator class="bg-white">
-            <q-item @click="changePassword" clickable>
+          <q-list separator class="bg-grey-1 text-grey-8">
+            <q-item dense @click="changePassword" clickable>
               <q-item-section avatar>
                 <q-icon name="account_circle" />
               </q-item-section>
               <q-item-section>Changer mon mot de passe</q-item-section>
             </q-item>
-            <q-item @click="signout" clickable>
+            <q-item dense @click="signout" clickable>
               <q-item-section avatar>
                 <q-icon name="exit_to_app" />
               </q-item-section>
@@ -46,6 +47,25 @@
           </q-list>
 
           <q-list separator>
+            <q-item
+              @click="changeCurrentCategory({ _id: 'starred' })"
+              :active="currentCategory._id === 'starred'"
+              class="text-bold"
+              clickable
+              v-ripple
+            >
+              <q-item-section avatar>
+                <q-icon name="star" />
+              </q-item-section>
+              <q-item-section>
+                Prioritaires
+              </q-item-section>
+              <q-item-section class="col-shrink" v-if="starredTodos.length">
+                <q-badge color="pink-3">
+                  {{starredTodos.length}}
+                </q-badge>
+              </q-item-section>
+            </q-item>
             <q-item
               :active="currentCategory._id === category._id"
               :key="index"
@@ -59,6 +79,11 @@
               </q-item-section>
               <q-item-section>
                 {{ category.title }}
+              </q-item-section>
+              <q-item-section class="col-shrink" v-if="todoTasks(category).length">
+                <q-badge color="pink-3">
+                  {{todoTasks(category).length}}
+                </q-badge>
               </q-item-section>
 
               <q-menu
@@ -87,15 +112,16 @@
       <q-page-container>
         <q-page padding v-if="doCurrentCategoryExists">
           <q-input
-            outlined
-            autofocus
-            v-model="newTaskInput"
-            class="q-mb-md"
-            placeholder="Nouvelle tâche..."
             @keydown.enter="addTask"
+            autofocus
+            class="q-mb-md"
+            outlined
+            placeholder="Nouvelle tâche..."
+            v-if="currentCategory._id !== 'starred'"
+            v-model="newTaskInput"
           />
 
-          <q-banner v-if="!todoTasks.length" rounded class="bg-grey-2">
+          <q-banner v-if="!todoTasks(currentCategory).length" rounded class="bg-grey-2">
             Vide
           </q-banner>
           <q-list v-else>
@@ -105,7 +131,8 @@
               style="background: #fff1f6;"
               clickable
               dense
-              v-for="(task, index) in todoTasks"
+              v-for="(task, index) in todoTasks(currentCategory)"
+              @dblclick="showModal(task)"
             >
               <q-item-section>
                 <div class="row items-center">
@@ -116,66 +143,101 @@
                       <a target="_blank" :href="task.title">{{task.title}}</a>
                     </div>
                   </div>
+                  <q-icon
+                    class="q-mr-sm"
+                    color="grey-6"
+                    name="notes"
+                    size="sm"
+                    v-if="task.notes"
+                  />
+                  <q-icon
+                    @click.stop="starTask(task)"
+                    :color="task.starred ? 'red' : 'black'"
+                    :name="task.starred ? 'star' : 'star_border'"
+                    class="star"
+                    size="sm"
+                  />
                 </div>
               </q-item-section>
             </q-item>
           </q-list>
 
-          <q-btn
-            @click="showDoneTasks = !showDoneTasks"
-            :label="`${showDoneTasks ? 'Cacher' : 'Afficher'} les tâches terminées`"
-            class="q-my-md full-width"
-            color="grey-8"
-          />
+          <div v-if="currentCategory._id !== 'starred'">
+            <q-btn
+              @click="showDoneTasks"
+              :label="`${areDoneTasksVisible ? 'Cacher' : 'Afficher'} les tâches terminées`"
+              class="q-my-md full-width"
+              color="grey-8"
+            />
 
-          <div v-if="showDoneTasks">
-            <q-banner v-if="!doneTasks(quantity).length" rounded class="bg-grey-2">
-                Vide
-            </q-banner>
-            <q-list v-else>
-              <q-item
-                :key="index"
-                class="bg-grey-3 rounded-borders q-mb-xs"
-                clickable
-                dense
-                v-for="(task, index) in doneTasks(quantity)"
-              >
-                <q-item-section>
-                  <div class="row items-center">
-                    <q-checkbox style="display: inline-block" @input="uncheckTask(task)" :value="true" />
-                    <div style="word-break: break-word;" class="col">
-                      <div v-if="!task.title.match(/https?:\/\//)">{{task.title}}</div>
-                      <div v-else>
-                        <a target="_blank" :href="task.title">{{task.title}}</a>
+            <div v-if="areDoneTasksVisible">
+              <q-banner v-if="!doneTasks(currentCategory, quantity).length" rounded class="bg-grey-2">
+                  Vide
+              </q-banner>
+              <q-list v-else>
+                <q-item
+                  :key="index"
+                  class="bg-grey-3 rounded-borders q-mb-xs"
+                  clickable
+                  dense
+                  v-for="(task, index) in doneTasks(currentCategory, quantity)"
+                >
+                  <q-item-section>
+                    <div class="row items-center">
+                      <q-checkbox style="display: inline-block" @input="uncheckTask(task)" :value="true" />
+                      <div style="word-break: break-word;" class="col">
+                        <div v-if="!task.title.match(/https?:\/\//)">{{task.title}}</div>
+                        <div v-else>
+                          <a target="_blank" :href="task.title">{{task.title}}</a>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </q-item-section>
-              </q-item>
-            </q-list>
+                  </q-item-section>
+                </q-item>
+              </q-list>
 
-            <div class="q-mt-md row">
-              <div class="q-pa-sm col-6">
-                <q-btn
-                  @click="quantity += 10"
-                  label="Voir plus"
-                  class="full-width"
-                  color="grey-5"
-                />
+              <div class="q-mt-md row">
+                <div class="q-pa-sm col-6">
+                  <q-btn
+                    @click="quantity += 10"
+                    label="Voir plus"
+                    class="full-width"
+                    color="grey-5"
+                  />
+                </div>
+                <div class="q-pa-sm col-6">
+                  <q-btn
+                    @click="quantity = 3000"
+                    label="Voir tout"
+                    class="full-width"
+                    color="grey-5"
+                  />
+                </div>
               </div>
-              <div class="q-pa-sm col-6">
-                <q-btn
-                  @click="quantity = 3000"
-                  label="Voir tout"
-                  class="full-width"
-                  color="grey-5"
-                />
-              </div>
-              
             </div>
           </div>
         </q-page>
       </q-page-container>
+
+      <q-dialog
+        v-model="isModalOpen"
+      >
+        <q-card style="width: 450px; max-width: 100vw;">
+          <q-card-section>
+            <div class="text-h6">Ma tâche</div>
+          </q-card-section>
+
+          <q-card-section>
+            <q-input v-model="modalData.title" placeholder="Nom de la tâche" />
+            <q-input v-model="modalData.notes" type="textarea" placeholder="Notes" />
+          </q-card-section>
+
+          <q-card-actions align="center" class="bg-white text-teal">
+            <q-btn color="negative" label="Annuler" @click="selectedTask = null" />
+            <q-btn color="positive" label="Enregistrer" @click="updateTask" />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
     </q-layout>
     <Login v-if="isReady && !isConnected" />
   </div>
@@ -190,14 +252,29 @@ export default {
   components: { Login },
   data () {
     return {
+      areDoneTasksVisible: false,
+      modalData: {
+        title: '',
+        notes: '',
+      },
+      isModalOpen: false,
+      selectedTask: null,
       drawer: false,
       newTaskInput: '',
-      showDoneTasks: false,
       quantity: 10,
+      todoModal: true,
     }
   },
   methods: {
-    ...mapActions(['fetchTasks', 'signout']),
+    ...mapActions(['signout']),
+    showModal(task) {
+      this.selectedTask = task
+      this.isModalOpen = true
+      this.modalData = {
+        title: task.title,
+        notes: task.notes,
+      }
+    },
     addTask() {
       this.$store.dispatch('createTask', {
         title: this.newTaskInput,
@@ -206,6 +283,23 @@ export default {
         .then(() => {
           this.newTaskInput = ''
         })
+    },
+    updateTask() {
+      this.$store.dispatch('updateTask', {
+        ...this.selectedTask,
+        title: this.modalData.title,
+        notes: this.modalData.notes,
+      })
+        .then(() => {
+          this.selectedTask = null
+          this.isModalOpen = false
+        })
+    },
+    starTask(task) {
+      this.$store.dispatch('updateTask', {
+        ...task,
+        starred: !task.starred,
+      })
     },
     createCategory() {
       this.$q.dialog({
@@ -223,10 +317,7 @@ export default {
       if (this.$q.screen.lt.md) {
         this.drawer = false
       }
-      this.$store.dispatch('fetchTasks', { category })
-        .then(() => {
-          this.$store.commit('changeCurrentCategory', category)
-        })
+      this.$store.commit('changeCurrentCategory', category)
     },
     checkTask(task) {
       this.$store.dispatch('updateTask', {
@@ -262,6 +353,14 @@ export default {
       }).onOk((res) => {
         this.$store.dispatch('deleteCategory', category)
       })
+    },
+    showDoneTasks() {
+      if (this.areDoneTasksVisible) {
+        this.areDoneTasksVisible = false
+        this.quantity = 10
+      } else {
+        this.areDoneTasksVisible = true
+      }
     },
     changePassword() {
       this.$q.dialog({
@@ -309,7 +408,15 @@ export default {
   },
   computed: {
     ...mapState(['categories', 'isConnected', 'user', 'currentCategory', 'isReady']),
-    ...mapGetters(['todoTasks', 'doneTasks', 'doCurrentCategoryExists']),
+    ...mapGetters(['todoTasks', 'doneTasks', 'starredTodos', 'doCurrentCategoryExists', 'getNumberOfTodos']),
   }
 }
 </script>
+
+<style lang="stylus">
+.star
+  opacity 0.5
+
+.star:hover
+  opacity 0.8
+</style>
