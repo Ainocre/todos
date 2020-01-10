@@ -43,12 +43,14 @@ export default {
             this.$store.dispatch('checkTask', {
                 ...task,
                 done: true,
+                doneAt: Date.now(),
             })
         },
         uncheckTask(task) {
             this.$store.dispatch('uncheckTask', {
                 ...task,
                 done: false,
+                doneAt: null,
             })
         },
         starTask(task) {
