@@ -125,41 +125,12 @@
             Vide
           </q-banner>
           <q-list v-else>
-            <q-item
+            <Task
               :key="task._id"
-              class="rounded-borders q-mb-xs"
-              style="background: #fff1f6;"
-              clickable
-              dense
-              v-for="task in todoTasks"
+              :task="task"
               @dblclick="showModal(task)"
-            >
-              <q-item-section>
-                <div class="row items-center">
-                  <q-checkbox style="display: inline-block" @input="checkTask(task)" :value="false" />
-                  <div style="word-break: break-word;" class="col">
-                    <div v-if="!task.title.match(/https?:\/\//)">{{task.title}}</div>
-                    <div v-else>
-                      <a target="_blank" :href="task.title">{{task.title}}</a>
-                    </div>
-                  </div>
-                  <q-icon
-                    class="q-mr-sm"
-                    color="grey-6"
-                    name="notes"
-                    size="sm"
-                    v-if="task.notes"
-                  />
-                  <q-icon
-                    @click.stop="starTask(task)"
-                    :color="task.starred ? 'red' : 'black'"
-                    :name="task.starred ? 'star' : 'star_border'"
-                    class="star"
-                    size="sm"
-                  />
-                </div>
-              </q-item-section>
-            </q-item>
+              v-for="task in todoTasks"
+            />
           </q-list>
 
           <div v-if="currentCategory._id !== 'starred'">
@@ -175,25 +146,12 @@
                   Vide
               </q-banner>
               <q-list v-else>
-                <q-item
+                <Task
                   :key="task._id"
-                  class="bg-grey-3 rounded-borders q-mb-xs"
-                  clickable
-                  dense
+                  :task="task"
+                  @dblclick="showModal(task)"
                   v-for="task in doneTasks"
-                >
-                  <q-item-section>
-                    <div class="row items-center">
-                      <q-checkbox style="display: inline-block" @input="uncheckTask(task)" :value="true" />
-                      <div style="word-break: break-word;" class="col">
-                        <div v-if="!task.title.match(/https?:\/\//)">{{task.title}}</div>
-                        <div v-else>
-                          <a target="_blank" :href="task.title">{{task.title}}</a>
-                        </div>
-                      </div>
-                    </div>
-                  </q-item-section>
-                </q-item>
+                />
               </q-list>
 
               <div class="q-mt-md row">
@@ -229,10 +187,11 @@
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 import Login from './Login.vue'
 import TaskModal from 'components/TaskModal.vue'
+import Task from 'components/Task.vue'
 
 export default {
   name: 'Tasks',
-  components: { Login, TaskModal },
+  components: { Login, TaskModal, Task },
   data () {
     return {
       areDoneTasksVisible: false,
@@ -256,12 +215,6 @@ export default {
           this.newTaskInput = ''
         })
     },
-    starTask(task) {
-      this.$store.dispatch('updateTask', {
-        ...task,
-        starred: !task.starred,
-      })
-    },
     createCategory() {
       this.$q.dialog({
         title: 'Quel nom donner à la catégorie ?',
@@ -279,18 +232,6 @@ export default {
         this.drawer = false
       }
       this.$store.commit('changeCurrentCategory', category)
-    },
-    checkTask(task) {
-      this.$store.dispatch('checkTask', {
-        ...task,
-        done: true,
-      })
-    },
-    uncheckTask(task) {
-      this.$store.dispatch('uncheckTask', {
-        ...task,
-        done: false,
-      })
     },
     updateCategory(category) {
       this.$q.dialog({
