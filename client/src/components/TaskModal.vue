@@ -26,14 +26,13 @@ export default {
     data() {
       return {
         isModalOpen: false,
-        task: null,
+        task: {},
         title: '',
         notes: '',
       }
     },
     methods: {
       init(task) {
-        console.log(task)
         this.task = task
         this.isModalOpen = true
         this.title = task.title
@@ -46,7 +45,7 @@ export default {
           notes: this.notes,
         })
           .then(() => {
-            this.task = null
+            this.task = {}
             this.isModalOpen = false
           })
       },

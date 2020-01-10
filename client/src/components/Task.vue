@@ -13,10 +13,15 @@
             :value="task.done"
         />
         <div style="word-break: break-word;" class="col">
-            <div v-if="!task.title.match(/https?:\/\//)">{{task.title}}</div>
-            <div v-else>
-                <a target="_blank" :href="task.title">{{task.title}}</a>
-            </div>
+            <component
+                :href="chunk.tag === 'a' ? chunk.content : undefined"
+                :is="chunk.tag"
+                :key="index"
+                target="_blank"
+                v-for="(chunk, index) in taskTitle"
+            >
+                {{chunk.content}}
+            </component>
         </div>
 
         <q-icon
@@ -42,6 +47,20 @@
 export default {
     name: 'Task',
     props: ['task'],
+    computed: {
+        taskTitle() {
+            const url = this.task.title.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/)
+            if (!url) return [{ tag: 'span', content: this.task.title }]
+
+            const before = this.task.title.slice(0, url.index)
+            const after = this.task.title.slice(url.index + url[0].length)
+            return [
+                { tag: 'span', content: before },
+                { tag: 'a', content: url[0]},
+                { tag: 'span', content: after },
+            ]
+        },
+    },
     methods: {
         checkTask(task) {
             this.$store.dispatch('checkTask', {
