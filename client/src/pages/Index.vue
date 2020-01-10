@@ -219,25 +219,7 @@
         </q-page>
       </q-page-container>
 
-      <q-dialog
-        v-model="isModalOpen"
-      >
-        <q-card style="width: 450px; max-width: 100vw;">
-          <q-card-section>
-            <div class="text-h6">Ma tâche</div>
-          </q-card-section>
-
-          <q-card-section>
-            <q-input v-model="modalData.title" placeholder="Nom de la tâche" />
-            <q-input v-model="modalData.notes" type="textarea" placeholder="Notes" />
-          </q-card-section>
-
-          <q-card-actions align="center" class="bg-white text-teal">
-            <q-btn color="negative" label="Annuler" @click="selectedTask = null" />
-            <q-btn color="positive" label="Enregistrer" @click="updateTask" />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
+      <TaskModal ref="taskModal" />
     </q-layout>
     <Login v-if="isReady && !isConnected" />
   </div>
@@ -246,34 +228,24 @@
 <script>
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 import Login from './Login.vue'
+import TaskModal from 'components/TaskModal.vue'
 
 export default {
   name: 'Tasks',
-  components: { Login },
+  components: { Login, TaskModal },
   data () {
     return {
       areDoneTasksVisible: false,
-      modalData: {
-        title: '',
-        notes: '',
-      },
-      isModalOpen: false,
-      selectedTask: null,
       drawer: false,
       newTaskInput: '',
       quantity: 10,
-      todoModal: true,
+      selectedTask: null,
     }
   },
   methods: {
     ...mapActions(['signout']),
     showModal(task) {
-      this.selectedTask = task
-      this.isModalOpen = true
-      this.modalData = {
-        title: task.title,
-        notes: task.notes,
-      }
+      this.$refs.taskModal.init(task)
     },
     addTask() {
       this.$store.dispatch('createTask', {
@@ -282,17 +254,6 @@ export default {
       })
         .then(() => {
           this.newTaskInput = ''
-        })
-    },
-    updateTask() {
-      this.$store.dispatch('updateTask', {
-        ...this.selectedTask,
-        title: this.modalData.title,
-        notes: this.modalData.notes,
-      })
-        .then(() => {
-          this.selectedTask = null
-          this.isModalOpen = false
         })
     },
     starTask(task) {
