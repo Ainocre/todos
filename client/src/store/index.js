@@ -1,8 +1,23 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import { sortBy } from 'lodash'
 import server from '../utils/server.js'
 
 Vue.use(Vuex)
+
+const sortChronologically = (type, tasks) => {
+  if (type === 'todo') {
+    const todos = sortBy(tasks, task => new Date(task._createdAt))
+    todos.reverse()
+    return todos
+  }
+  if (type === 'done') {
+    const done = sortBy(tasks, task => new Date(task.doneAt))
+    done.reverse()
+    return done
+  }
+  return tasks
+}
 
 const store = new Vuex.Store({
   state: {
@@ -98,12 +113,12 @@ const store = new Vuex.Store({
     checkTask(state, task) {
       const index = state.tasks.findIndex(t => t._id === task._id)
       state.tasks.splice(index, 1)
-      state.doneTasks.push(task)
+      state.doneTasks.unshift(task)
     },
     uncheckTask(state, task) {
       const index = state.doneTasks.findIndex(t => t._id === task._id)
       state.doneTasks.splice(index, 1)
-      state.tasks.push(task)
+      state.tasks.unshift(task)
     },
     setTasks(state, tasks) {
       Vue.set(state, 'tasks', tasks)
@@ -119,8 +134,8 @@ const store = new Vuex.Store({
         service: 'fetchStart',
       })
         .then(({ data: { user, categories, todos } }) => {
-          ctx.commit('setTasks', todos.filter(({ done }) => !done))
-          ctx.commit('setDoneTasks', todos.filter(({ done }) => !!done))
+          ctx.commit('setTasks', sortChronologically('todo', todos.filter(({ done }) => !done)))
+          ctx.commit('setDoneTasks', sortChronologically('done', todos.filter(({ done }) => !!done)))
           ctx.commit('setUser', user)
           ctx.commit('setCategories', categories)
           ctx.commit('isConnected', true)

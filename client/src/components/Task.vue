@@ -7,7 +7,11 @@
         clickable
         dense
     >
-        <q-checkbox style="display: inline-block" @input="checkTask(task)" :value="false" />
+        <q-checkbox
+            style="display: inline-block"
+            @input="task.done ? uncheckTask(task) : checkTask(task)"
+            :value="task.done"
+        />
         <div style="word-break: break-word;" class="col">
             <div v-if="!task.title.match(/https?:\/\//)">{{task.title}}</div>
             <div v-else>
