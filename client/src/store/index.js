@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import { values, keyBy } from 'lodash'
 import server from '../utils/server.js'
 
 Vue.use(Vuex)
@@ -11,27 +10,36 @@ const store = new Vuex.Store({
     currentCategory: { _id: 'starred' },
     isConnected: false,
     isReady: false,
-    tasks: {},
+    tasks: [],
+    doneTasks: [],
     user: null,
   },
 
   getters: {
     starredTodos(state) {
-      return values(state.tasks).filter(todo => todo.starred && !todo.done)
+      return state.tasks.filter(todo => todo.starred && !todo.done)
     },
     todoTasks(state) {
-      return category => {
-        const todos = category._id === 'starred'
-          ? values(state.tasks).filter(todo => todo.starred && !todo.done)
-          : values(state.tasks).filter(task => !task.done && task.categoryId === category._id)
-        return [
-          ...todos.filter(todo => todo.starred),
-          ...todos.filter(todo => !todo.starred),
-        ]
-      }
+      const todos = state.currentCategory._id === 'starred'
+        ? state.tasks.filter(todo => todo.starred && !todo.done)
+        : state.tasks.filter(task => !task.done && task.categoryId === state.currentCategory._id)
+      return [
+        ...todos.filter(todo => todo.starred),
+        ...todos.filter(todo => !todo.starred),
+      ]
     },
     doneTasks(state) {
-      return (category, quantity) => values(state.tasks).filter(task => task.done && task.categoryId === category._id).slice(0, quantity)
+      return state.doneTasks.filter(task => task.done && task.categoryId === state.currentCategory._id)
+    },
+
+
+    categorySizes(state) {
+      const todos = state.tasks.filter(({ done }) => !done)
+      const res = {}
+      state.categories.forEach((category) => {
+        res[category._id] = todos.filter(task => task.categoryId === category._id).length
+      })
+      return res
     },
 
     
@@ -80,12 +88,28 @@ const store = new Vuex.Store({
     },
 
 
-    mergeTasks(state, tasks) {
-      const newTasks = {
-        ...state.tasks,
-        ...keyBy(tasks, '_id'),
-      }
-      Vue.set(state, 'tasks', newTasks)
+    updateTask(state, task) {
+      const index = state.tasks.findIndex(t => t._id === task._id)
+      state.tasks.splice(index, 1, task)
+    },
+    addTask(state, task) {
+      state.tasks.push(task)
+    },
+    checkTask(state, task) {
+      const index = state.tasks.findIndex(t => t._id === task._id)
+      state.tasks.splice(index, 1)
+      state.doneTasks.push(task)
+    },
+    uncheckTask(state, task) {
+      const index = state.doneTasks.findIndex(t => t._id === task._id)
+      state.doneTasks.splice(index, 1)
+      state.tasks.push(task)
+    },
+    setTasks(state, tasks) {
+      Vue.set(state, 'tasks', tasks)
+    },
+    setDoneTasks(state, tasks) {
+      Vue.set(state, 'doneTasks', tasks)
     },
   },
 
@@ -95,7 +119,8 @@ const store = new Vuex.Store({
         service: 'fetchStart',
       })
         .then(({ data: { user, categories, todos } }) => {
-          ctx.commit('mergeTasks', todos)
+          ctx.commit('setTasks', todos.filter(({ done }) => !done))
+          ctx.commit('setDoneTasks', todos.filter(({ done }) => !!done))
           ctx.commit('setUser', user)
           ctx.commit('setCategories', categories)
           ctx.commit('isConnected', true)
@@ -177,7 +202,7 @@ const store = new Vuex.Store({
         data: { task },
       })
         .then(({ data }) => {
-          ctx.commit('mergeTasks', [data])
+          ctx.commit('addTask', data)
         })
     },
     updateTask(ctx, task) {
@@ -187,7 +212,27 @@ const store = new Vuex.Store({
         data: { task },
       })
         .then(() => {
-          ctx.commit('mergeTasks', [task])
+          ctx.commit('updateTask', task)
+        })
+    },
+    checkTask(ctx, task) {
+      server.ql({
+        service: 'tasks',
+        method: 'update',
+        data: { task },
+      })
+        .then(() => {
+          ctx.commit('checkTask', task)
+        })
+    },
+    uncheckTask(ctx, task) {
+      server.ql({
+        service: 'tasks',
+        method: 'update',
+        data: { task },
+      })
+        .then(() => {
+          ctx.commit('uncheckTask', task)
         })
     },
   },

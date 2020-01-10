@@ -68,10 +68,10 @@
             </q-item>
             <q-item
               :active="currentCategory._id === category._id"
-              :key="index"
+              :key="category._id"
               @click="changeCurrentCategory(category)"
               clickable
-              v-for="(category, index) in categories"
+              v-for="category in categories"
               v-ripple
             >
               <q-item-section avatar>
@@ -80,9 +80,9 @@
               <q-item-section>
                 {{ category.title }}
               </q-item-section>
-              <q-item-section class="col-shrink" v-if="todoTasks(category).length">
+              <q-item-section class="col-shrink" v-if="categorySizes[category._id]">
                 <q-badge color="pink-3">
-                  {{todoTasks(category).length}}
+                  {{categorySizes[category._id]}}
                 </q-badge>
               </q-item-section>
 
@@ -121,17 +121,17 @@
             v-model="newTaskInput"
           />
 
-          <q-banner v-if="!todoTasks(currentCategory).length" rounded class="bg-grey-2">
+          <q-banner v-if="!todoTasks.length" rounded class="bg-grey-2">
             Vide
           </q-banner>
           <q-list v-else>
             <q-item
-              :key="index"
+              :key="task._id"
               class="rounded-borders q-mb-xs"
               style="background: #fff1f6;"
               clickable
               dense
-              v-for="(task, index) in todoTasks(currentCategory)"
+              v-for="task in todoTasks"
               @dblclick="showModal(task)"
             >
               <q-item-section>
@@ -171,16 +171,16 @@
             />
 
             <div v-if="areDoneTasksVisible">
-              <q-banner v-if="!doneTasks(currentCategory, quantity).length" rounded class="bg-grey-2">
+              <q-banner v-if="!doneTasks.length" rounded class="bg-grey-2">
                   Vide
               </q-banner>
               <q-list v-else>
                 <q-item
-                  :key="index"
+                  :key="task._id"
                   class="bg-grey-3 rounded-borders q-mb-xs"
                   clickable
                   dense
-                  v-for="(task, index) in doneTasks(currentCategory, quantity)"
+                  v-for="task in doneTasks"
                 >
                   <q-item-section>
                     <div class="row items-center">
@@ -320,13 +320,13 @@ export default {
       this.$store.commit('changeCurrentCategory', category)
     },
     checkTask(task) {
-      this.$store.dispatch('updateTask', {
+      this.$store.dispatch('checkTask', {
         ...task,
         done: true,
       })
     },
     uncheckTask(task) {
-      this.$store.dispatch('updateTask', {
+      this.$store.dispatch('uncheckTask', {
         ...task,
         done: false,
       })
@@ -408,8 +408,11 @@ export default {
   },
   computed: {
     ...mapState(['categories', 'isConnected', 'user', 'currentCategory', 'isReady']),
-    ...mapGetters(['todoTasks', 'doneTasks', 'starredTodos', 'doCurrentCategoryExists', 'getNumberOfTodos']),
-  }
+    ...mapGetters(['todoTasks', 'starredTodos', 'doCurrentCategoryExists', 'getNumberOfTodos', 'categorySizes']),
+    doneTasks() {
+      return this.$store.getters.doneTasks.slice(0, this.quantity)
+    },
+  },
 }
 </script>
 
