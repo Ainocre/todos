@@ -147,7 +147,6 @@ export default {
       return this.$store.state.doneTasks.filter(task => task.categoryId === this.currentCategory._id).slice(0, this.quantity)
     },
     starredTasks() {
-      console.log(groupBy(this.todoTasks, 'categoryId'))
       return groupBy(this.todoTasks, 'categoryId')
     },
   },

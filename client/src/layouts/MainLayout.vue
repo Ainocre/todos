@@ -12,12 +12,12 @@
     <q-layout view="hHh Lpr fFf" v-if="isReady && isConnected">
         <q-header class="bg-pink-6" elevated>
             <q-toolbar>
-                <q-btn dense round flat color="white" @click="drawer = !drawer">
+                <q-btn dense round flat color="white" @click.left="drawer = !drawer" @click.right.prevent="showBottomMenu">
                     <q-avatar size="md" color="pink-3" text-color="white">{{user.email && user.email[0]}}</q-avatar>
                 </q-btn>
 
                 <q-toolbar-title>
-                    Simple todos {{getCategory($route.params.categoryId).title ? ` - ${getCategory($route.params.categoryId).title}` : ''}}
+                  Simple todos {{getCategory($route.params.categoryId).title ? ` - ${getCategory($route.params.categoryId).title}` : ''}}
                 </q-toolbar-title>
             </q-toolbar>
         </q-header>
@@ -31,21 +31,6 @@
             v-model="drawer"
         >
             <q-scroll-area class="fit">
-                <q-list separator class="bg-grey-1 text-grey-8">
-                    <q-item dense @click="changePassword" clickable>
-                        <q-item-section avatar>
-                            <q-icon name="account_circle" />
-                        </q-item-section>
-                        <q-item-section>Changer mon mot de passe</q-item-section>
-                    </q-item>
-                    <q-item dense @click="signout" clickable>
-                        <q-item-section avatar>
-                            <q-icon name="exit_to_app" />
-                        </q-item-section>
-                        <q-item-section>Se déconnecter</q-item-section>
-                    </q-item>
-                </q-list>
-
                 <q-list separator>
                     <q-item
                         @click="handleDrawer"
@@ -216,7 +201,31 @@ export default {
             })
         })
       })
-    }
+    },
+    showBottomMenu() {
+      this.$q.bottomSheet({
+        dark: true,
+        message: 'Mon compte',
+        actions: [
+          {
+            label: 'Modifier mon mot de passe',
+            icon: 'account_circle',
+            onClick: () => {
+              this.changePassword()
+            },
+          },
+          {
+            label: 'Se déconnecter',
+            icon: 'exit_to_app',
+            onClick: () => {
+              this.signout()
+            },
+          },
+        ]
+      }).onOk((action) => {
+        action.onClick()
+      })
+    },
   },
   computed: {
     ...mapState(['categories', 'isConnected', 'user', 'isReady', 'connectionLoader']),
