@@ -96,6 +96,10 @@ app
             usersDB.update({ _id: user._id }, { $set: { pwd: await bcrypt.hash(data.pwd, round) } })
             return res.send('ok')
         }
+        if (service === 'setBackground') {
+            usersDB.update({ _id: user._id }, { $set: { backgroundIndex: data.backgroundIndex } })
+            return res.send('ok')
+        }
         if (service === 'tasks') {
             if (method === 'read') {
                 return res.send(await todosDB.find({

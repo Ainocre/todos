@@ -22,6 +22,8 @@
       <q-input
         @keydown.enter="addTask"
         autofocus
+        :filled="!!background"
+        :dark="!!background"
         class="q-mb-md"
         outlined
         placeholder="Nouvelle tâche..."
@@ -127,7 +129,7 @@ export default {
   },
   computed: {
     ...mapState(['tasks']),
-    ...mapGetters(['getCategory']),
+    ...mapGetters(['getCategory', 'background']),
     doCurrentCategoryExists() {
       return this.$route.params.categoryId === 'starred' || this.getCategory(this.$route.params.categoryId).title
     },

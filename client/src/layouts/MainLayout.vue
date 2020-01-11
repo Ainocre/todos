@@ -26,7 +26,7 @@
             :breakpoint="500"
             :width="300"
             bordered
-            content-class="bg-grey-3"
+            content-class="bg-grey-2"
             show-if-above
             v-model="drawer"
         >
@@ -96,9 +96,34 @@
             </q-scroll-area>
         </q-drawer>
 
-        <q-page-container>
+        <q-page-container class="page-container" :style="`background-image: url(${background});` ">
             <router-view />
         </q-page-container>
+
+        <q-dialog v-model="themeModal">
+          <q-card style="width: 650px;">
+            <q-card-section class="row items-center">
+              <div class="text-h6">Thèmes</div>
+              <q-space />
+              <q-btn icon="close" flat round dense v-close-popup />
+            </q-card-section>
+
+            <q-card-section>
+              <q-btn label="Thème blanc" class="full-width q-my-md" @click="setBackground(null)" />
+              <div class="row">
+                <q-btn
+                  :key="bg"
+                  @click="setBackground(index)"
+                  class="col-xs-12 col-sm-6"
+                  flat
+                  v-for="(bg, index) in bgs"
+                >
+                  <img class="fit" :src="bg" />
+                </q-btn>
+              </div>
+            </q-card-section>
+          </q-card>
+        </q-dialog>
     </q-layout>
     <Login v-if="isReady && !isConnected && !connectionLoader" />
   </div>
@@ -108,17 +133,21 @@
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 import Login from 'pages/Login.vue'
 
-
 export default {
   name: 'Tasks',
   components: { Login },
   data () {
     return {
       drawer: false,
+      themeModal: false,
     }
   },
+  computed: {
+    ...mapState(['categories', 'isConnected', 'user', 'isReady', 'connectionLoader']),
+    ...mapGetters(['starredTodos', 'categorySizes', 'getCategory', 'bgs', 'background']),
+  },
   methods: {
-    ...mapActions(['signout']),
+    ...mapActions(['signout', 'setBackground']),
     createCategory() {
       this.$q.dialog({
         title: 'Quel nom donner à la catégorie ?',
@@ -208,6 +237,13 @@ export default {
         message: 'Mon compte',
         actions: [
           {
+            label: 'Thème',
+            icon: 'color_lens',
+            onClick: () => {
+              this.themeModal = true
+            },
+          },
+          {
             label: 'Modifier mon mot de passe',
             icon: 'account_circle',
             onClick: () => {
@@ -227,17 +263,11 @@ export default {
       })
     },
   },
-  computed: {
-    ...mapState(['categories', 'isConnected', 'user', 'isReady', 'connectionLoader']),
-    ...mapGetters(['starredTodos', 'categorySizes', 'getCategory']),
-  },
 }
 </script>
 
 <style lang="stylus">
-.star
-  opacity 0.5
-
-.star:hover
-  opacity 0.8
+.page-container
+  background-size cover
+  background-attachment fixed
 </style>

@@ -19,6 +19,13 @@ const sortChronologically = (type, tasks) => {
   return tasks
 }
 
+const bgs = [
+  require('assets/bg1.jpg'),
+  require('assets/bg2.jpg'),
+  require('assets/bg3.jpg'),
+  require('assets/bg4.jpg'),
+]
+
 const store = new Vuex.Store({
   state: {
     categories: [],
@@ -40,6 +47,14 @@ const store = new Vuex.Store({
 
     starredTodos(state) {
       return state.tasks.filter(todo => todo.starred && !todo.done)
+    },
+
+
+    bgs() {
+      return bgs
+    },
+    background(state) {
+      return bgs[state.user.backgroundIndex]
     },
 
 
@@ -75,6 +90,9 @@ const store = new Vuex.Store({
       state.isConnected = false
       state.tasks = []
       state.user = null
+    },
+    setBackground(state, backgroundIndex) {
+      state.user.backgroundIndex = backgroundIndex
     },
 
 
@@ -166,6 +184,15 @@ const store = new Vuex.Store({
         service: 'changePwd',
         data: { pwd },
       })
+    },
+    setBackground(ctx, backgroundIndex) {
+      server.ql({
+        service: 'setBackground',
+        data: { backgroundIndex },
+      })
+        .then(() => {
+          ctx.commit('setBackground', backgroundIndex)
+        })
     },
 
 

@@ -2,8 +2,7 @@
     <q-item
         @dblclick="$emit('dblclick')"
         class="rounded-borders q-mb-xs items-center"
-        :class="task.done ? 'bg-grey-3' : ''"
-        :style="!task.done ? 'background: #fff1f6;' : ''"
+        :style="taskStyle"
         clickable
         dense
     >
@@ -60,6 +59,21 @@ export default {
                 { tag: 'span', content: after },
             ]
         },
+        taskStyle() {
+            if (!this.$store.getters.background) {
+                if (this.task.done) {
+                    return 'background: #cecece;'
+                } else {
+                    return 'background: #f7e9e9;'
+                }
+            } else {
+                if (this.task.done) {
+                    return 'background: rgba(255,255,255,0.55);'
+                } else {
+                    return 'background: rgba(255,255,255,0.8);'
+                }
+            }
+        }
     },
     methods: {
         checkTask(task) {
