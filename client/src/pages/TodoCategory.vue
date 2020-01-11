@@ -1,64 +1,83 @@
 <template>
   <q-page padding v-if="doCurrentCategoryExists">
-    <q-input
-      @keydown.enter="addTask"
-      autofocus
-      class="q-mb-md"
-      outlined
-      placeholder="Nouvelle tâche..."
-      v-if="$route.params.categoryId !== 'starred'"
-      v-model="newTaskInput"
-    />
-
-    <q-banner v-if="!todoTasks.length" rounded class="bg-grey-2">
-      Vide
-    </q-banner>
-    <q-list v-else>
-      <Task
-        :key="task._id"
-        :task="task"
-        @dblclick="showModal(task)"
-        v-for="task in todoTasks"
-      />
-    </q-list>
-
-    <div v-if="$route.params.categoryId !== 'starred'">
-      <q-btn
-        @click="showDoneTasks"
-        :label="`${areDoneTasksVisible ? 'Cacher' : 'Afficher'} les tâches terminées`"
-        class="q-my-md full-width"
-        color="grey-8"
-      />
-
-      <div v-if="areDoneTasksVisible">
-        <q-banner v-if="!doneTasks.length" rounded class="bg-grey-2">
-            Vide
-        </q-banner>
-        <q-list v-else>
+    <div v-if="$route.params.categoryId === 'starred'">
+      <q-list>
+        <q-expansion-item
+          :label="getCategory(key).title"
+          default-opened
+          header-class="text-bold"
+          v-for="(categoryTasks, key) in starredTasks"
+          :key="key"
+        >
           <Task
             :key="task._id"
             :task="task"
             @dblclick="showModal(task)"
-            v-for="task in doneTasks"
+            v-for="task in categoryTasks"
           />
-        </q-list>
+        </q-expansion-item>
+      </q-list>
+    </div>
+    <div v-else>
+      <q-input
+        @keydown.enter="addTask"
+        autofocus
+        class="q-mb-md"
+        outlined
+        placeholder="Nouvelle tâche..."
+        v-model="newTaskInput"
+      />
 
-        <div class="q-mt-md row">
-          <div class="q-pa-sm col-6">
-            <q-btn
-              @click="quantity += 10"
-              label="Voir plus"
-              class="full-width"
-              color="grey-5"
+      <q-banner v-if="!todoTasks.length" rounded class="bg-grey-2">
+        Vide
+      </q-banner>
+      <q-list v-else>
+        <Task
+          :key="task._id"
+          :task="task"
+          @dblclick="showModal(task)"
+          v-for="task in todoTasks"
+        />
+      </q-list>
+
+      <div>
+        <q-btn
+          @click="showDoneTasks"
+          :label="`${areDoneTasksVisible ? 'Cacher' : 'Afficher'} les tâches terminées`"
+          class="q-my-md full-width"
+          color="grey-8"
+        />
+
+        <div v-if="areDoneTasksVisible">
+          <q-banner v-if="!doneTasks.length" rounded class="bg-grey-2">
+              Vide
+          </q-banner>
+          <q-list v-else>
+            <Task
+              :key="task._id"
+              :task="task"
+              @dblclick="showModal(task)"
+              v-for="task in doneTasks"
             />
-          </div>
-          <div class="q-pa-sm col-6">
-            <q-btn
-              @click="quantity = 3000"
-              label="Voir tout"
-              class="full-width"
-              color="grey-5"
-            />
+          </q-list>
+
+          <div class="q-mt-md row">
+            <div class="q-pa-sm col-6">
+              <q-btn
+                @click="quantity += 10"
+                label="Voir plus"
+                class="full-width"
+                color="grey-5"
+              />
+            </div>
+            <div class="q-pa-sm col-6">
+              <q-btn
+                @click="quantity = 3000"
+                label="Voir tout"
+                class="full-width"
+                color="grey-5"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -72,6 +91,7 @@
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 import TaskModal from 'components/TaskModal.vue'
 import Task from 'components/Task.vue'
+import { groupBy } from 'lodash'
 
 export default {
   name: 'TodoCategory',
@@ -125,6 +145,10 @@ export default {
     },
     doneTasks() {
       return this.$store.state.doneTasks.filter(task => task.categoryId === this.currentCategory._id).slice(0, this.quantity)
+    },
+    starredTasks() {
+      console.log(groupBy(this.todoTasks, 'categoryId'))
+      return groupBy(this.todoTasks, 'categoryId')
     },
   },
 }
