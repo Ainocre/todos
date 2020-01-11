@@ -10,7 +10,7 @@
         <q-checkbox
             style="display: inline-block"
             @input="task.done ? uncheckTask(task) : checkTask(task)"
-            :value="task.done"
+            :value="task.done || false"
         />
         <div style="word-break: break-word;" class="col">
             <component

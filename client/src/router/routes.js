@@ -2,8 +2,14 @@
 const routes = [
   {
     path: '/',
-    component: () => import('pages/Index.vue'),
-  }
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      {
+        path: ':categoryId',
+        component: () => import('pages/TodoCategory.vue'),
+      },
+    ],
+  },
 ]
 
 // Always leave this as last one

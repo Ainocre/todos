@@ -22,7 +22,6 @@ const sortChronologically = (type, tasks) => {
 const store = new Vuex.Store({
   state: {
     categories: [],
-    currentCategory: { _id: 'starred' },
     isConnected: false,
     isReady: false,
     tasks: [],
@@ -31,20 +30,15 @@ const store = new Vuex.Store({
   },
 
   getters: {
+    getCategory(state) {
+      return (id) => {
+        if (id === 'starred') return { _id: 'starred' }
+        return state.categories.find(category => category._id === id) || {}
+      }      
+    },
+
     starredTodos(state) {
       return state.tasks.filter(todo => todo.starred && !todo.done)
-    },
-    todoTasks(state) {
-      const todos = state.currentCategory._id === 'starred'
-        ? state.tasks.filter(todo => todo.starred && !todo.done)
-        : state.tasks.filter(task => !task.done && task.categoryId === state.currentCategory._id)
-      return [
-        ...todos.filter(todo => todo.starred),
-        ...todos.filter(todo => !todo.starred),
-      ]
-    },
-    doneTasks(state) {
-      return state.doneTasks.filter(task => task.done && task.categoryId === state.currentCategory._id)
     },
 
 
@@ -55,11 +49,6 @@ const store = new Vuex.Store({
         res[category._id] = todos.filter(task => task.categoryId === category._id).length
       })
       return res
-    },
-
-    
-    doCurrentCategoryExists(state) {
-      return state.currentCategory._id === 'starred' || state.categories.find(cat => state.currentCategory._id === cat._id)
     },
   },
 
@@ -85,11 +74,6 @@ const store = new Vuex.Store({
     },
 
 
-    changeCurrentCategory(state, category) {
-      state.currentCategory = category
-    },
-
-
     createCategory(state, category) {
       state.categories.push(category)
     },
@@ -108,7 +92,7 @@ const store = new Vuex.Store({
       state.tasks.splice(index, 1, task)
     },
     addTask(state, task) {
-      state.tasks.push(task)
+      state.tasks.unshift(task)
     },
     checkTask(state, task) {
       const index = state.tasks.findIndex(t => t._id === task._id)
