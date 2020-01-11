@@ -52,8 +52,8 @@ export default {
     data() {
         return {
             mode: 'signin', // signin - signup
-            email: 'g@g.com',
-            pwd: 'sdf',
+            email: '',
+            pwd: '',
             rpwd: '',
         }
     },

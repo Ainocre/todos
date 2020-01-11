@@ -106,18 +106,15 @@ export default {
     },
   },
   computed: {
-    ...mapState(['tasks', 'doneTasks']),
-    ...mapGetters(['getCategory', 'todoTasks', 'doneTasks']),
-    doneTasks() {
-      return this.$store.getters.doneTasks.slice(0, this.quantity)
-    },
+    ...mapState(['tasks']),
+    ...mapGetters(['getCategory']),
     doCurrentCategoryExists() {
       return this.$route.params.categoryId === 'starred' || this.getCategory(this.$route.params.categoryId).title
     },
     currentCategory() {
       return this.getCategory(this.$route.params.categoryId)
     },
-    todoTasks(state, getters) {
+    todoTasks() {
       const todos = this.currentCategory._id === 'starred'
         ? this.tasks.filter(todo => todo.starred && !todo.done)
         : this.tasks.filter(task => !task.done && task.categoryId === this.currentCategory._id)
@@ -126,8 +123,8 @@ export default {
         ...todos.filter(todo => !todo.starred),
       ]
     },
-    doneTasks(state, getters) {
-      return this.doneTasks.filter(task => task.done && task.categoryId === this.currentCategory._id)
+    doneTasks() {
+      return this.$store.state.doneTasks.filter(task => task.categoryId === this.currentCategory._id).slice(0, this.quantity)
     },
   },
 }
