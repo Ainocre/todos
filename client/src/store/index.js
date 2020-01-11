@@ -22,10 +22,11 @@ const sortChronologically = (type, tasks) => {
 const store = new Vuex.Store({
   state: {
     categories: [],
+    connectionLoader: false,
+    doneTasks: [],
     isConnected: false,
     isReady: false,
     tasks: [],
-    doneTasks: [],
     user: null,
   },
 
@@ -58,6 +59,9 @@ const store = new Vuex.Store({
     },
     isReady(state) {
       state.isReady = true
+    },
+    connectionLoader(state, newState) {
+      state.connectionLoader = newState
     },
     setCategories(state, categories) {
       state.categories = categories
@@ -114,6 +118,7 @@ const store = new Vuex.Store({
 
   actions: {
     fetchStart(ctx) {
+      ctx.commit('connectionLoader', true)
       server.ql({
         service: 'fetchStart',
       })
@@ -124,9 +129,11 @@ const store = new Vuex.Store({
           ctx.commit('setCategories', categories)
           ctx.commit('isConnected', true)
           ctx.commit('isReady', true)
+          ctx.commit('connectionLoader', false)
         })
         .catch((err) => {
           ctx.commit('isReady')
+          ctx.commit('connectionLoader', false)
           throw err
         })
     },

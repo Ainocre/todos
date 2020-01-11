@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="bg-white flex flex-center window-height" v-if="!isReady">
+    <div class="bg-white flex flex-center window-height" v-if="!isReady || connectionLoader">
         <div class="column items-center">
             <div class="text-h4 text-pink-6" style="margin-bottom: 30px;">Simple todos</div>
             <q-spinner
@@ -115,7 +115,7 @@
             <router-view />
         </q-page-container>
     </q-layout>
-    <Login v-if="isReady && !isConnected" />
+    <Login v-if="isReady && !isConnected && !connectionLoader" />
   </div>
 </template>
 
@@ -219,7 +219,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['categories', 'isConnected', 'user', 'isReady']),
+    ...mapState(['categories', 'isConnected', 'user', 'isReady', 'connectionLoader']),
     ...mapGetters(['starredTodos', 'categorySizes', 'getCategory']),
   },
 }

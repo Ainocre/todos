@@ -6,7 +6,14 @@
                 {{mode === 'signin' ? 'Connexion' : 'Créer un compte'}}
             </div>
 
-            <q-form @submit="onSubmit">
+            <div class="text-center q-ma-xl" v-if="isLoading">
+                <q-spinner
+                    color="primary"
+                    size="3em"
+                />
+            </div>
+
+            <q-form @submit="onSubmit" v-else>
                 <q-input
                     autofocus
                     class="q-mt-md"
@@ -51,6 +58,7 @@ export default {
     name: 'Login',
     data() {
         return {
+            isLoading: false,
             mode: 'signin', // signin - signup
             email: '',
             pwd: '',
@@ -87,11 +95,18 @@ export default {
                 })
             }
 
+            this.isLoading = true
+
             this.$store.dispatch(this.mode, {
                 email: this.email,
                 pwd: this.pwd
             })
+                .then(() => {
+                    this.isLoading = false
+                })
                 .catch((err) => {
+                    this.isLoading = false
+
                     return this.$q.notify({
                         message: err.response.data,
                         position: 'top-right',
