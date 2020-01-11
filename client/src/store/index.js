@@ -136,7 +136,7 @@ const store = new Vuex.Store({
         fields: { email, pwd },
       })
         .then(({ data }) => {
-          localStorage.token = data
+          localStorage.todoToken = data
           return ctx.dispatch('fetchStart')
         })
     },
@@ -146,13 +146,13 @@ const store = new Vuex.Store({
         fields: { email, pwd },
       })
         .then(({ data }) => {
-          localStorage.token = data
+          localStorage.todoToken = data
           return ctx.dispatch('fetchStart')
         })
     },
     signout(ctx) {
       ctx.commit('resetState')
-      delete localStorage.token
+      delete localStorage.todoToken
     },
     changePwd(ctx, pwd) {
       server.ql({
