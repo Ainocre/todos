@@ -23,8 +23,8 @@
         </q-header>
 
         <q-drawer
-            :breakpoint="400"
-            :width="350"
+            :breakpoint="500"
+            :width="300"
             bordered
             content-class="bg-grey-3"
             show-if-above
