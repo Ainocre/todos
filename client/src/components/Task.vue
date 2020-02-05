@@ -1,15 +1,13 @@
 <template>
     <q-item
-        @dblclick="$emit('dblclick')"
+        @dblclick="task.editModal()"
         class="rounded-borders q-mb-xs items-center"
-        :style="taskStyle"
         clickable
         dense
     >
         <q-checkbox
             style="display: inline-block"
-            @input="task.done ? uncheckTask(task) : checkTask(task)"
-            :value="task.done || false"
+            v-model="task.checked"
         />
         <div style="word-break: break-word;" class="col">
             <component
@@ -32,12 +30,12 @@
         />
 
         <q-icon
-            @click.stop="starTask(task)"
+            @click.stop="starTask"
             :color="task.starred ? 'red' : 'black'"
             :name="task.starred ? 'star' : 'star_border'"
             class="star"
             size="sm"
-            v-if="!task.done"
+            v-if="!task.checked"
         />
     </q-item>
 </template>
@@ -59,42 +57,10 @@ export default {
                 { tag: 'span', content: after },
             ]
         },
-        taskStyle() {
-            if (!this.$store.getters.background) {
-                if (this.task.done) {
-                    return 'background: #cecece;'
-                } else {
-                    return 'background: #f7e9e9;'
-                }
-            } else {
-                if (this.task.done) {
-                    return 'background: rgba(255,255,255,0.55);'
-                } else {
-                    return 'background: rgba(255,255,255,0.8);'
-                }
-            }
-        }
     },
     methods: {
-        checkTask(task) {
-            this.$store.dispatch('checkTask', {
-                ...task,
-                done: true,
-                doneAt: Date.now(),
-            })
-        },
-        uncheckTask(task) {
-            this.$store.dispatch('uncheckTask', {
-                ...task,
-                done: false,
-                doneAt: null,
-            })
-        },
-        starTask(task) {
-            this.$store.dispatch('updateTask', {
-                ...task,
-                starred: !task.starred,
-            })
+        starTask() {
+            this.task.starred = !this.task.starred
         },
     },
 }

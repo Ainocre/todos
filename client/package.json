@@ -14,10 +14,13 @@
     "@quasar/extras": "^1.0.0",
     "axios": "^0.18.1",
     "email-regex": "^4.0.0",
+    "firebase": "^7.8.0",
     "lodash": "^4.17.15",
     "quasar": "^1.0.0"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.8.3",
+    "@babel/plugin-proposal-optional-chaining": "^7.8.3",
     "@quasar/app": "^1.0.0",
     "@quasar/quasar-app-extension-icon-genie": "^1.1.3"
   },

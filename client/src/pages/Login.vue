@@ -97,18 +97,15 @@ export default {
 
             this.isLoading = true
 
-            this.$store.dispatch(this.mode, {
+            this.$store[this.mode]({
                 email: this.email,
                 pwd: this.pwd
             })
-                .then(() => {
-                    this.isLoading = false
-                })
                 .catch((err) => {
                     this.isLoading = false
 
                     return this.$q.notify({
-                        message: err.response.data,
+                        message: err.message,
                         position: 'top-right',
                         color: 'negative',
                     })
