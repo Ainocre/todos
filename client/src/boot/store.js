@@ -22,10 +22,16 @@ const CategoryModel = model('Category', {
     userId: { type: type.string, required: true, refTo: { user: 'users' } },
 })
 
+const MessagesModel = model('Message', {
+    content: type.string,
+    userId: { type: type.string, default: ({ store }) => store.user?.id, refTo: { user: 'users' } },
+})
+
 const Store = store({
     users: Collection('users', UserModel, commonRules),
     tasks: Collection('tasks', TaskModel, commonRules),
     categories: Collection('categories', CategoryModel, commonRules),
+    messages: Collection('messages', MessagesModel, null, { subscribe: true })
 })
 
 Store.auth()

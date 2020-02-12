@@ -1,6 +1,30 @@
 <template>
-    <div>
-        <div>Page de tests</div>
-        {{store.categories.doc('FOATz4f66s58cUTgwZc5').title || 'ok'}}
+    <div class="q-pa-md">
+        <q-input @keydown.enter="sendMessage" placeholder="Nouveau message" autofocus v-model="message" />
+        <ul>
+            <li
+                v-for="message in store.messages.all"
+                :key="message.id"
+            >
+                {{message.content}}
+            </li>
+        </ul>
     </div>
 </template>
+
+<script>
+export default {
+    name: 'Test',
+    data() {
+        return {
+            message: '',
+        }
+    },
+    methods: {
+        sendMessage() {
+            this.store.messages.add({ content: this.message })
+            this.message = ''
+        },
+    },
+}
+</script>

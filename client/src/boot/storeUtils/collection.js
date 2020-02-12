@@ -22,14 +22,14 @@ export default (collectionName, ItemsModel, rules, options) => class Collection 
     static type = 'StoreCollection'
     type = 'StoreCollectionInstance'
     
-    async add(state, id, force) {
+    async add(state, id, { local, force } = {}) {
         if (this.options?.preventCreate && !force) throw 'Création interdite sur cette collection'
 
         const newItem = new this.ItemsModel({ id, state, collection: this.collectionName, store: this.store, options: this.options })
         const document = newItem.toJS()
 
         if (this.store.isLocal || !this.rules?.create || this.rules.create.some(rule => rule.create(document))) {
-            if (this.collectionName && !this.store?.options?.local) {
+            if (!local && this.collectionName && !this.store?.options?.local) {
                 if (id) {
                     await db.collection(this.collectionName).doc(id).set(document)
                 } else {
@@ -37,8 +37,10 @@ export default (collectionName, ItemsModel, rules, options) => class Collection 
                     newItem.id = id
                 }
             }
-    
-            this.state.data.push(newItem)
+            
+            if (!this.options?.subscribe || local) {
+                this.state.data.push(newItem)
+            }
         }
 
         return newItem
@@ -90,17 +92,39 @@ export default (collectionName, ItemsModel, rules, options) => class Collection 
             } else req = db.collection(this.collectionName)
 
             if (req) {
-                req.where('_removed', '==', false).get()
-                    .then((items) => {
-                        this.alreadyFetchAll = true
-                        this.state.data = items.docs.map((doc) => new this.ItemsModel({
-                            id: doc.id,
-                            collection: this.collectionName,
-                            state: doc.data(),
-                            store: this.store,
-                            options: this.options,
-                        }))
-                    })
+                this.alreadyFetchAll = true
+
+                if (this.options?.subscribe) {
+                    req.where('_removed', '==', false)
+                        .onSnapshot((snapshot) => {
+                            snapshot.docChanges().forEach((change) => {
+                                if (change.type === "added") {
+                                    this.add(change.doc.data(), change.doc.id, { local: true })
+                                }
+                                if (change.type === "modified") {
+                                    const localItem = this.state.data.find(({ id }) => id === change.doc.id)
+                                    if (!localItem) return
+                                    localItem.update(change.doc.data(), { local: true })
+                                }
+                                if (change.type === "removed") {
+                                    const localItem = this.state.data.find(({ id }) => id === change.doc.id)
+                                    if (!localItem) return
+                                    localItem.update({ _removed: true }, { local: true })
+                                }
+                            })
+                        })
+                } else {
+                    req.where('_removed', '==', false).get()
+                        .then((items) => {
+                            this.state.data = items.docs.map((doc) => new this.ItemsModel({
+                                id: doc.id,
+                                collection: this.collectionName,
+                                state: doc.data(),
+                                store: this.store,
+                                options: this.options,
+                            }))
+                        })
+                }
             }
         }
         return this.state.data
