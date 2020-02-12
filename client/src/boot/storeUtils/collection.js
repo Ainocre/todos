@@ -77,7 +77,7 @@ export default (collectionName, ItemsModel, rules, options) => class Collection 
             } else req = db.collection(this.collectionName)
 
             if (req) {
-                req.get()
+                req.where('_removed', '==', false).get()
                     .then((items) => {
                         this.alreadyFetchAll = true
                         this.state.data = items.docs.map((doc) => new this.ItemsModel({
@@ -91,5 +91,6 @@ export default (collectionName, ItemsModel, rules, options) => class Collection 
             }
         }
         return this.state.data
+            .filter(item => !item._removed)
     }
 }

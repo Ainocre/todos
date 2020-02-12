@@ -222,5 +222,14 @@ export default (modelName, rawSchema) => {
         saveStaging() {
             return this.update(cloneDeep(this.staging))
         }
+
+        softRemove() {
+            this._removed = true
+        }
+
+        hardRemove() {
+            this._removed = true
+            db.collection(this.collectionName).doc(this.id).delete()
+        }
     }
 }
