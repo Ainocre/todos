@@ -13,13 +13,13 @@ const TaskModel = model('Task', {
     checked: { type: type.boolean, default: false },
     starred: { type: type.boolean, default: false },
     notes: { type: type.string, input: { type: 'textarea', label: 'Notes de la tâche' } },
-    userId: { type: type.string, required: true, refToCollection: { user: 'users' } },
-    categoryId: { type: type.string, required: true, refToCollection: { category: 'categories' } },
+    userId: { type: type.string, required: true, refTo: { user: 'users' } },
+    categoryId: { type: type.string, required: true, refTo: { category: 'categories' } },
 })
 
 const CategoryModel = model('Category', {
     title: { type: type.string, required: true, input: { type: 'text', label: 'Nom de la catégorie' } },
-    userId: { type: type.string, required: true, refToCollection: { user: 'users' } },
+    userId: { type: type.string, required: true, refTo: { user: 'users' } },
 })
 
 const Store = store({

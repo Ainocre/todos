@@ -24,18 +24,26 @@ export default (modelName, rawSchema) => {
 
     return class Model {
         constructor(data) {
-            this.id = data?.id || uid()
+            this.id = data?.id || data?.load || uid()
             this.modelName = modelName
-            this.removed = false
             this.collectionName = data?.collection
             this.store = data?.store
             this.options = data?.options
+            this.loading = !!data?.load
 
             // Setup initiastate observables
-            const initiatedState = this.initState(data?.state || data)
+            const initiatedState = this.initState({ mode: data.load ? 'load' : 'init', doc: data?.state || data})
             this.state = Vue.observable(initiatedState)
             this.staging = Vue.observable(cloneDeep(initiatedState))
             this.baseState = cloneDeep(this.state)
+
+            if (data.load && this.collectionName) {
+                db.collection(this.collectionName).doc(data.load).get()
+                    .then((item) => {
+                        this.update(item.data(), { local: true })
+                        this.loading = false
+                    })
+            }
 
             // Setup computed
             const that = this
@@ -66,50 +74,54 @@ export default (modelName, rawSchema) => {
             this.state = cloneDeep(this.baseState)
         }
 
-        initState(doc = {}) {
+        initState({ mode, doc }) {
             const temp = {}
 
             // All fields are in schema
-            forEach(doc, (field, fieldName) => {
-                if (!this.schema[fieldName]) throw `${fieldName} is missing in ${this.modelName} schema`
-            })
+            if (mode === 'init') {
+                forEach(doc, (field, fieldName) => {
+                    if (!this.schema[fieldName]) throw `${fieldName} is missing in ${this.modelName} schema`
+                })
+            }
 
             forEach(this.schema, (fieldSchema, fieldName) => {
                 const field = doc[fieldName]
 
-                // isRequired
-                if (isNil(field) && !this.options?.temp) {
-                    if (fieldSchema.required) {
-                        if (isNil(fieldSchema.default)) throw `${fieldName} is required`
-                        temp[fieldName] = isFunction(fieldSchema.default) ? fieldSchema.default({ store: this.store }) : fieldSchema.default
+                if (mode === 'init') {
+                    // isRequired
+                    if (isNil(field) && !this.options?.temp) {
+                        if (fieldSchema.required) {
+                            if (isNil(fieldSchema.default)) throw `${fieldName} is required`
+                            temp[fieldName] = isFunction(fieldSchema.default) ? fieldSchema.default({ store: this.store }) : fieldSchema.default
+                            return
+                        }
+                        if (isFunction(fieldSchema.default)) {
+                            temp[fieldName] = fieldSchema.default({ store: this.store })
+                            return
+                        }
+                        temp[fieldName] = fieldSchema.default ?? null
                         return
                     }
-                    if (isFunction(fieldSchema.default)) {
-                        temp[fieldName] = fieldSchema.default({ store: this.store })
+                
+                    // TypeValidation
+                    if (!fieldSchema.type) throw `Type is missing in ${fieldName} schema`
+                    if (fieldSchema.type === 'StoreModel') {
+                        if (!fieldSchema.isInstanceOf(field)) throw `${fieldName} is in wrong type`
+                    } else {
+                        if (!fieldSchema.type(field)) throw `${fieldName} is in wrong type`
+                    }
+                
+                    // Validation du oneOf
+                    if (fieldSchema.oneOf) {
+                        if ((isNil(field) && fieldSchema.required) || (field && !fieldSchema.oneOf.includes(field)))
+                            throw `${fieldName} must be on of these : ${fieldSchema.oneOf.join(', ')}`
+                    }
+                
+                    // Validation
+                    if (fieldSchema.validation) {
+                        temp[fieldName] = fieldSchema.validation(doc)
                         return
                     }
-                    temp[fieldName] = fieldSchema.default ?? null
-                    return
-                }
-            
-                // TypeValidation
-                if (!fieldSchema.type) throw `Type is missing in ${fieldName} schema`
-                if (fieldSchema.type === 'StoreModel') {
-                    if (!fieldSchema.isInstanceOf(field)) throw `${fieldName} is in wrong type`
-                } else {
-                    if (!fieldSchema.type(field)) throw `${fieldName} is in wrong type`
-                }
-            
-                // Validation du oneOf
-                if (fieldSchema.oneOf) {
-                    if ((isNil(field) && fieldSchema.required) || (field && !fieldSchema.oneOf.includes(field)))
-                        throw `${fieldName} must be on of these : ${fieldSchema.oneOf.join(', ')}`
-                }
-            
-                // Validation
-                if (fieldSchema.validation) {
-                    temp[fieldName] = fieldSchema.validation(doc)
-                    return
                 }
             
                 temp[fieldName] = field
@@ -122,19 +134,20 @@ export default (modelName, rawSchema) => {
                         that.update({ [fieldName]: value })
                     },
                     get: function () {
+                        if (this.loading) return 'Chargement...'
                         return that.state[fieldName]
                     },
                 })
 
-                if (this.schema[fieldName].refToCollection) {
-                    const { refToCollection } = this.schema[fieldName]
-                    const key = keys(refToCollection)[0]
+                if (this.schema[fieldName].refTo) {
+                    const { refTo } = this.schema[fieldName]
+                    const key = keys(refTo)[0]
 
                     Object.defineProperty(this, key, {
                         get: function () {
                             return this.schema[fieldName].type([])
-                                ? Promise.all(this.state[fieldName].map(id => that.store[refToCollection[key]].doc(id)))
-                                : that.store[refToCollection[key]].doc(this.state[fieldName])
+                                ? this.state[fieldName].map(id => that.store[refTo[key]].doc(id))
+                                : that.store[refTo[key]].doc(this.state[fieldName])
                         },
                     })
                 }
@@ -143,7 +156,7 @@ export default (modelName, rawSchema) => {
             return temp
         }
 
-        update(fields, force) {
+        update(fields, { local, force }) {
             if (this.options?.preventUpdate && !force) throw 'Update interdit sur cet item'
             const temp = {}
 
@@ -176,12 +189,12 @@ export default (modelName, rawSchema) => {
             const document = { ...this.toJS(), ...temp, _updatedAt: Date.now(), _updatedBy: this.store?.user?.id }
 
             const updateRule = get(this.store, [this.collectionName, 'rules', 'update'])
-            if (this.store?.isLocal || !updateRule || updateRule.some(rule => rule.update(document))) {
+            if (local || this.store?.isLocal || !updateRule || updateRule.some(rule => rule.update(document))) {
                 forEach(temp, (field, fieldName) => {
                     this.state[fieldName] = field
                 })
                 
-                if (this.collectionName && !this.store?.isLocal) {
+                if (this.collectionName && !this.store?.isLocal && !local) {
                     return db.collection(this.collectionName).doc(this.id).set(document)
                 }
             } else {

@@ -117,7 +117,7 @@ class Store {
                 return
             }
           
-            const localUser = await this[userCollectionName].doc(user.uid)
+            const localUser = await this[userCollectionName].docAsync(user.uid)
             this.options.isReady = true
           
             this.internalState.user = localUser

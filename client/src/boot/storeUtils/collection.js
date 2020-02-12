@@ -49,7 +49,7 @@ export default (collectionName, ItemsModel, rules, options) => class Collection 
         this.store.StoreModal.show('create', fields, this.ItemsModel, defaultValues, this.collectionName)
     }
 
-    async doc(id) {
+    async docAsync(id) {
         const user = this.state.data.find(item => item.id === id)
         if (user) return user
 
@@ -58,6 +58,19 @@ export default (collectionName, ItemsModel, rules, options) => class Collection 
             const localUser = new this.ItemsModel({ id, collection: this.collectionName, state: dbUser.data(), store: this.store, options: this.options })
             this.state.data.push(localUser)
             return localUser
+        }
+
+        return null
+    }
+
+    doc(id) {
+        const user = this.state.data.find(item => item.id === id)
+        if (user) return user
+
+        if (this.collectionName && !this.store?.options?.local) {
+            const item = new this.ItemsModel({ load: id, collection: this.collectionName, store: this.store, options: this.options })
+            this.state.data.push(item)
+            return item
         }
 
         return null
