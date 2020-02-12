@@ -9,13 +9,13 @@ const {
 } = storeUtils
 
 const UserModel = model('User', {
-    email: type.email,
+    email: { type: type.email, required: true },
 })
 
 const commonRules = (rules) => ({ all: [rules.mine()] })
 
 const TaskModel = model('Task', {
-    createdAt: { type: type.date, required: true },
+    createdAt: { type: type.date, default: Date.now },
     title: { type: type.string, required: true, input: { type: 'text', label: 'Nom de la tâche' } },
     checked: { type: type.boolean, default: false },
     starred: { type: type.boolean, default: false },
@@ -30,7 +30,7 @@ const CategoryModel = model('Category', {
 })
 
 const Store = store({
-    users: Collection('users', UserModel),
+    users: Collection('users', UserModel, commonRules),
     tasks: Collection('tasks', TaskModel, commonRules),
     categories: Collection('categories', CategoryModel, commonRules),
 })
@@ -38,4 +38,4 @@ const Store = store({
 Store.auth()
 
 window.store = Store
-Vue.prototype.$store = Store
+Vue.prototype.store = Store

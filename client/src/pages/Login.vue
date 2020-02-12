@@ -97,7 +97,7 @@ export default {
 
             this.isLoading = true
 
-            this.$store[this.mode]({
+            this.store[this.mode]({
                 email: this.email,
                 pwd: this.pwd
             })

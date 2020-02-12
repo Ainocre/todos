@@ -55,9 +55,9 @@ export default {
   },
   methods: {
     addTask() {
-      this.$store.tasks.add({
+      this.store.tasks.add({
         createdAt: Date.now(),
-        userId: this.$store.user.id,
+        userId: this.store.user.id,
         title: this.newTaskInput,
         categoryId: this.currentCategoryId
       })
@@ -65,7 +65,7 @@ export default {
       this.newTaskInput = ''
     },
     getCategoryNameById(key) {
-      return this.$store.categories.all.find(({ id }) => id === key)?.title
+      return this.store.categories.all.find(({ id }) => id === key)?.title
     },
   },
   computed: {
@@ -73,13 +73,13 @@ export default {
       return this.$route.params.categoryId
     },
     currentCategory() {
-      return this.$store.categories.all.find(({ id }) => id === this.currentCategoryId)
+      return this.store.categories.all.find(({ id }) => id === this.currentCategoryId)
     },
     categoryTasks() {
-      return this.$store.tasks.all.filter(({ categoryId, checked }) => categoryId === this.currentCategoryId && !checked)
+      return this.store.tasks.all.filter(({ categoryId, checked }) => categoryId === this.currentCategoryId && !checked)
     },
     starredTasks() {
-      return groupBy(this.$store.tasks.all.filter(({ starred, checked }) => starred && !checked), 'categoryId')
+      return groupBy(this.store.tasks.all.filter(({ starred, checked }) => starred && !checked), 'categoryId')
     }
   },
 }
