@@ -2,9 +2,20 @@ import Vue from 'vue'
 import { uid } from 'quasar' 
 import { forEach, isNil, isFunction, cloneDeep, isArray, keys, get } from 'lodash'
 import { db } from './firebase'
+import type from './type'
+
+const fixSchema = {
+    _createdAt: { type: type.date, default: Date.now },
+    _updatedAt: { type: type.date, default: Date.now },
+    _createdBy: { type: type.string, default: ({ store }) => store?.user?.id || null },
+    _updatedBy: { type: type.string, default: ({ store }) => store?.user?.id || null },
+    _removed: { type: type.boolean, default: false },
+}
 
 export default (modelName, rawSchema) => {
     const schema = rawSchema.state ? cloneDeep(rawSchema) : { state: cloneDeep(rawSchema) }
+    schema.state = { ...schema.state, ...fixSchema }
+
     forEach(schema.state, (fieldSchema, fieldName) => {
         if (isFunction(fieldSchema)) {
             schema.state[fieldName] = { type: fieldSchema }
@@ -70,11 +81,11 @@ export default (modelName, rawSchema) => {
                 if (isNil(field) && !this.options?.temp) {
                     if (fieldSchema.required) {
                         if (isNil(fieldSchema.default)) throw `${fieldName} is required`
-                        temp[fieldName] = isFunction(fieldSchema.default) ? fieldSchema.default() : fieldSchema.default
+                        temp[fieldName] = isFunction(fieldSchema.default) ? fieldSchema.default({ store: this.store }) : fieldSchema.default
                         return
                     }
                     if (isFunction(fieldSchema.default)) {
-                        temp[fieldName] = fieldSchema.default()
+                        temp[fieldName] = fieldSchema.default({ store: this.store })
                         return
                     }
                     temp[fieldName] = fieldSchema.default ?? null
@@ -162,7 +173,7 @@ export default (modelName, rawSchema) => {
                 temp[fieldName] = field
             })
 
-            const document = { ...this.toJS(), ...temp }
+            const document = { ...this.toJS(), ...temp, _updatedAt: Date.now(), _updatedBy: this.store?.user?.id }
 
             const updateRule = get(this.store, [this.collectionName, 'rules', 'update'])
             if (this.store?.isLocal || !updateRule || updateRule.some(rule => rule.update(document))) {

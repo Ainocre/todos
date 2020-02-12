@@ -67,7 +67,7 @@ import { pick, pickBy, forEach, isArray, isObject } from 'lodash'
 export default {
     name: 'StoreModal',
     created() {
-        this.store.Modal = this
+        this.store.StoreModal = this
     },
     data() {
         return {

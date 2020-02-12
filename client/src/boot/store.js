@@ -1,12 +1,6 @@
 import Vue from 'vue'
-import storeUtils from './storeUtils'
+import { model, type, store, Collection } from './storeUtils'
 
-const {
-    model,
-    type,
-    store,
-    Collection,
-} = storeUtils
 
 const UserModel = model('User', {
     email: { type: type.email, required: true },
@@ -15,7 +9,6 @@ const UserModel = model('User', {
 const commonRules = (rules) => ({ all: [rules.mine()] })
 
 const TaskModel = model('Task', {
-    createdAt: { type: type.date, default: Date.now },
     title: { type: type.string, required: true, input: { type: 'text', label: 'Nom de la tâche' } },
     checked: { type: type.boolean, default: false },
     starred: { type: type.boolean, default: false },
