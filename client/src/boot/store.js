@@ -37,5 +37,8 @@ const Store = store({
 
 Store.auth()
 
-window.store = Store
+if (process.env.NODE_ENV === 'development') {
+    window.store = Store
+}
+
 Vue.prototype.store = Store

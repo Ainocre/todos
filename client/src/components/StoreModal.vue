@@ -67,7 +67,7 @@ import { pick, pickBy, forEach, isArray, isObject } from 'lodash'
 export default {
     name: 'StoreModal',
     created() {
-        this.$store.StoreModal = this
+        this.store.Modal = this
     },
     data() {
         return {
@@ -118,7 +118,7 @@ export default {
             })
             this.data.element.saveStaging()
             if (this.mode === 'create') {
-                this.$store[this.collectionName].add(this.data.element.state)
+                this.store[this.collectionName].add(this.data.element.state)
             }
             this.isOpen = false
         },
