@@ -109,23 +109,6 @@ class Store {
         return temp
     }
 
-    // setState(newState) {
-    //     forEach(newState, (field, fieldName) => {
-    //         const fieldSchema = this.schema[fieldName]
-
-    //         // Exists in schema
-    //         if (!fieldSchema) throw `${fieldName} is missing in Store schema`
-
-    //         // fieldSchema is a StoreModel
-    //         if (fieldSchema.type !== 'StoreModel') throw `${fieldName} is not a StoreModel and cannot be updated`
-
-    //         // field is an instance of StoreModel
-    //         if (field !== null && !(field instanceof fieldSchema)) throw `${fieldName} must be null of an instance of ${fieldSchema.modelName} Model`
-        
-    //         this[fieldName] = field
-    //     })
-    // }
-
     ready() {
         this.options.isReady = true
     }
