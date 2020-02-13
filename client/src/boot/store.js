@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import { model, type, store, Collection } from './storeUtils'
+import { model, type, store, collection } from './storeUtils'
 
 
 const UserModel = model('User', {
@@ -29,10 +29,10 @@ const MessagesModel = model('Message', {
 
 const Store = store({
     selectedTask: null,
-    users: Collection('users', UserModel, commonRules),
-    tasks: Collection('tasks', TaskModel, commonRules),
-    categories: Collection('categories', CategoryModel, commonRules),
-    messages: Collection('messages', MessagesModel, null, { subscribe: true })
+    users: collection('users', UserModel, commonRules),
+    tasks: collection('tasks', TaskModel, commonRules),
+    categories: collection('categories', CategoryModel, commonRules),
+    messages: collection('messages', MessagesModel, null, { subscribe: true })
 })
 
 Store.auth()

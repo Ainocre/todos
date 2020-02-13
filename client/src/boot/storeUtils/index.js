@@ -4,6 +4,6 @@ import rawModel from './model'
 import rawType from './type'
 
 export const store = rawStore
-export const Collection = rawCollection
+export const collection = rawCollection
 export const model = rawModel
 export const type = rawType
