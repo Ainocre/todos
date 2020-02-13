@@ -1,4 +1,5 @@
-import { isNil, isString, isNumber, isArray, isBoolean, constant, isObject } from 'lodash'
+import { date } from 'quasar'
+import { isNil, isString, isNumber, isArray, isBoolean } from 'lodash'
 import emailRegex from 'email-regex'
 
 export default {
@@ -19,5 +20,5 @@ export default {
                 return subFieldRule(item)
             }
         })),
-    date: field => true, // A faire
+    date: field => isNil(field) || date.isValid(field),
 }

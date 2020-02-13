@@ -27,17 +27,21 @@ const MessagesModel = model('Message', {
     userId: { type: type.string, default: ({ store }) => store.user?.id, refTo: { user: 'users' } },
 })
 
-const OptionModel = model('Option', {
-    value: type.string,
-    label: type.string,
-})
+// const OptionModel = model('Option', {
+//     value: type.string,
+//     label: type.string,
+// })
 
 const Store = store({
     selectedTask: null,
-    select: model('Select', {
-        options: type.array(OptionModel),
-        select: OptionModel,
-    }),
+    // select: model('Select', {
+    //     options: type.array(OptionModel),
+    //     select: OptionModel,
+    // }),
+    select: {
+        options: [],
+        select: null,
+    },
     users: collection('users', UserModel, commonRules),
     tasks: collection('tasks', TaskModel, commonRules),
     categories: collection('categories', CategoryModel, commonRules),
