@@ -27,13 +27,39 @@ const MessagesModel = model('Message', {
     userId: { type: type.string, default: ({ store }) => store.user?.id, refTo: { user: 'users' } },
 })
 
+const OptionModel = model('Option', {
+    value: type.string,
+    label: type.string,
+})
+
 const Store = store({
     selectedTask: null,
+    select: model('Select', {
+        options: type.array(OptionModel),
+        select: OptionModel,
+    }),
     users: collection('users', UserModel, commonRules),
     tasks: collection('tasks', TaskModel, commonRules),
     categories: collection('categories', CategoryModel, commonRules),
     messages: collection('messages', MessagesModel, null, { subscribe: true })
 })
+
+// const shared = Vue.observable({ value: "hello" })
+
+// const vm = new Vue({
+//   created() {
+//     this.$watch(() => shared.value, (value) => {
+//       console.log("value changed to:", value)
+//     })
+//   }
+// })
+
+// window.shared = shared
+
+Store.select = {
+    options: [],
+    select: null,
+}
 
 Store.auth()
 

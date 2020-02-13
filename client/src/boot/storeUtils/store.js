@@ -54,53 +54,77 @@ class Store {
         })
     }
 
+    helpers = {
+        push(ele, key, newValue) {
+            ele[key] = [...ele[key], newValue]
+        },
+        pop(ele, key) {
+            ele[key] = ele.slice(0, -1)
+        },
+        shift(ele, key) {
+            ele[key] = ele.slice(1)
+        },
+        unshift(ele, key, newValue) {
+            ele[key] = [newValue, ...ele]
+        },
+        splice(ele, key, ...params) {
+            const temp = cloneDeep(ele[key])
+            temp.splice(...params)
+            ele[key] = temp
+        },
+    }
+
     initState() {
         const temp = {}
 
         forEach(this.schema, (fieldSchema, fieldName) => {
-            temp[fieldName] = fieldSchema
             if (fieldSchema?.type === 'StoreModel') {
                 temp[fieldName] = null
+                Object.defineProperty(this, fieldName, {
+                    set: (value) => {
+                        this.state[fieldName] = new fieldSchema(value)
+                    },
+                    get: () => this.state[fieldName],
+                })
+                return
             }
             if (fieldSchema?.type === 'StoreCollection') {
                 temp[fieldName] = new fieldSchema(this)
+                Object.defineProperty(this, fieldName, {
+                    set: () => {
+                        throw 'Impossible de réassigner une collection'
+                    },
+                    get: () => this.state[fieldName],
+                })
+                return
             }
-        })
 
-        console.log(temp)
-
-        const that = this
-        forEach(Vue.observable(temp), (field, fieldName) => {
-            const that = this
+            temp[fieldName] = fieldSchema
             Object.defineProperty(this, fieldName, {
-                set: function (value) {
-                    that.state[fieldName] = value
-                },
-                get: function () {
-                    return that.state[fieldName]
-                },
+                set: (value) => this.state[fieldName] = value,
+                get: () => this.state[fieldName],
             })
         })
 
         return temp
     }
 
-    setState(newState) {
-        forEach(newState, (field, fieldName) => {
-            const fieldSchema = this.schema[fieldName]
+    // setState(newState) {
+    //     forEach(newState, (field, fieldName) => {
+    //         const fieldSchema = this.schema[fieldName]
 
-            // Exists in schema
-            if (!fieldSchema) throw `${fieldName} is missing in Store schema`
+    //         // Exists in schema
+    //         if (!fieldSchema) throw `${fieldName} is missing in Store schema`
 
-            // fieldSchema is a StoreModel
-            if (fieldSchema.type !== 'StoreModel') throw `${fieldName} is not a StoreModel and cannot be updated`
+    //         // fieldSchema is a StoreModel
+    //         if (fieldSchema.type !== 'StoreModel') throw `${fieldName} is not a StoreModel and cannot be updated`
 
-            // field is an instance of StoreModel
-            if (field !== null && !(field instanceof fieldSchema)) throw `${fieldName} must be null of an instance of ${fieldSchema.modelName} Model`
+    //         // field is an instance of StoreModel
+    //         if (field !== null && !(field instanceof fieldSchema)) throw `${fieldName} must be null of an instance of ${fieldSchema.modelName} Model`
         
-            this[fieldName] = field
-        })
-    }
+    //         this[fieldName] = field
+    //     })
+    // }
 
     ready() {
         this.options.isReady = true

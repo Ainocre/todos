@@ -131,7 +131,7 @@ export default (modelName, rawSchema) => {
             forEach(temp, (field, fieldName) => {
                 Object.defineProperty(this, fieldName, {
                     set: function (value) {
-                        that.update({ [fieldName]: value })
+                        that.update({ [fieldName]: cloneDeep(value) })
                     },
                     get: function () {
                         if (this.loading) return 'Chargement...'
@@ -156,7 +156,7 @@ export default (modelName, rawSchema) => {
             return temp
         }
 
-        update(fields, { local, force }) {
+        update(fields, { local, force } = {}) {
             if (this.options?.preventUpdate && !force) throw 'Update interdit sur cet item'
             const temp = {}
 
@@ -167,9 +167,17 @@ export default (modelName, rawSchema) => {
 
                 // TypeValidation
                 if (fieldSchema.type === 'StoreModel') {
-                    if (!fieldSchema.isInstanceOf(field)) throw `${fieldName} is in wrong type`
+                    if (!fieldSchema.isInstanceOf(field)) {
+                        field = new fieldSchema(field)
+                        if (!fieldSchema.isInstanceOf(field)) {
+                            throw `${fieldName} is in wrong type`
+                        }
+                    }
                 } else {
-                    if (!fieldSchema.type(field)) throw `${fieldName} is in wrong type`
+                    if (fieldSchema.type.type === 'StoreModel') {
+                        new fieldSchema.type(field)
+                    } else if (!fieldSchema.type(field))
+                        throw `${fieldName} is in wrong type`
                 }
 
                 // Validation du oneOf

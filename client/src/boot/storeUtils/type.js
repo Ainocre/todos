@@ -1,4 +1,4 @@
-import { isNil, isString, isNumber, isArray, isBoolean } from 'lodash'
+import { isNil, isString, isNumber, isArray, isBoolean, constant, isObject } from 'lodash'
 import emailRegex from 'email-regex'
 
 export default {
@@ -7,6 +7,17 @@ export default {
     number: field => isNil(field) || isNumber(field),
     boolean: field => isNil(field) || isBoolean(field),
     array: subFieldRule => field => isNil(field)
-        || (isArray(field) && field.every(item => subFieldRule.type === 'StoreModel' ? subFieldRule.isInstanceOf(item) : subFieldRule(item))),
+        || (isArray(field) && field.every((item) =>  {
+            if (subFieldRule.type === 'StoreModel') {
+                if (subFieldRule.isInstanceOf(item)) {
+                    return true
+                } else {
+                    const temp = new subFieldRule(item)
+                    return true
+                }
+            } else {
+                return subFieldRule(item)
+            }
+        })),
     date: field => true, // A faire
 }
