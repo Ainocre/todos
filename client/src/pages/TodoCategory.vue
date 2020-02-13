@@ -56,7 +56,6 @@ export default {
   methods: {
     addTask() {
       this.store.tasks.add({
-        createdAt: Date.now(),
         userId: this.store.user.id,
         title: this.newTaskInput,
         categoryId: this.currentCategoryId

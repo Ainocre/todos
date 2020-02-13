@@ -58,14 +58,16 @@ class Store {
         const temp = {}
 
         forEach(this.schema, (fieldSchema, fieldName) => {
-            temp[fieldName] = null
-            if (fieldSchema.type === 'StoreModel') {
+            temp[fieldName] = fieldSchema
+            if (fieldSchema?.type === 'StoreModel') {
                 temp[fieldName] = null
             }
-            if (fieldSchema.type === 'StoreCollection') {
+            if (fieldSchema?.type === 'StoreCollection') {
                 temp[fieldName] = new fieldSchema(this)
             }
         })
+
+        console.log(temp)
 
         const that = this
         forEach(Vue.observable(temp), (field, fieldName) => {

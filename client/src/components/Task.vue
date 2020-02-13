@@ -1,7 +1,9 @@
 <template>
     <q-item
         @dblclick="task.editModal()"
+        @click="store.selectedTask = task"
         class="rounded-borders q-mb-xs items-center"
+        :class="{ 'bg-grey-2': store.selectedTask === task}"
         clickable
         dense
     >

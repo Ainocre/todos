@@ -28,6 +28,7 @@ const MessagesModel = model('Message', {
 })
 
 const Store = store({
+    selectedTask: null,
     users: Collection('users', UserModel, commonRules),
     tasks: Collection('tasks', TaskModel, commonRules),
     categories: Collection('categories', CategoryModel, commonRules),
