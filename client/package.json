@@ -15,7 +15,7 @@
     "axios": "^0.18.1",
     "email-regex": "^4.0.0",
     "firebase": "^7.8.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "quasar": "^1.0.0"
   },
   "devDependencies": {
