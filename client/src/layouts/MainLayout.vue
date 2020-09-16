@@ -1,151 +1,107 @@
 <template>
-  <div>
-    <div class="bg-white flex flex-center window-height" v-if="!store.isReady">
-        <div class="column items-center">
-            <div class="text-h4 text-pink-6" style="margin-bottom: 30px;">Simple todos</div>
-            <q-spinner
-                color="pink-6"
-                size="4em"
-            />
-        </div>
-    </div>
-    <q-layout view="hHh Lpr fFf" v-if="store.user">
-        <q-header class="bg-pink-6" elevated>
-            <q-toolbar>
-                <q-btn dense round flat color="white" @click.left="leftMenu = !leftMenu">
-                    <q-avatar size="md" color="pink-3" text-color="white">{{store.user.email[0]}}</q-avatar>
-                </q-btn>
+  <q-layout view="lHh Lpr lFf">
+    <q-header elevated>
+      <q-toolbar>
+        <q-btn
+          flat
+          dense
+          round
+          icon="menu"
+          aria-label="Menu"
+          @click="leftDrawerOpen = !leftDrawerOpen"
+        />
 
-                <q-toolbar-title>
-                  Simple todos {{currentCategoryName}}
-                </q-toolbar-title>
-            </q-toolbar>
-        </q-header>
+        <q-toolbar-title>
+          Quasar App
+        </q-toolbar-title>
 
-        <q-drawer
-            :breakpoint="500"
-            :width="300"
-            bordered
-            content-class="bg-grey-2"
-            show-if-above
-            v-model="leftMenu"
+        <div>Quasar v{{ $q.version }}</div>
+      </q-toolbar>
+    </q-header>
+
+    <q-drawer
+      v-model="leftDrawerOpen"
+      show-if-above
+      bordered
+      content-class="bg-grey-1"
+    >
+      <q-list>
+        <q-item-label
+          header
+          class="text-grey-8"
         >
-            <q-scroll-area class="fit">
-                <q-list separator>
-                    <q-item
-                        @click="store.signout()"
-                        class="text-bold"
-                        clickable
-                        v-ripple
-                    >
-                        <q-item-section avatar>
-                            <q-icon name="exit_to_app" />
-                        </q-item-section>
-                        <q-item-section>
-                            Se déconnecter
-                        </q-item-section>
-                    </q-item>
-                    <q-item
-                        :active="$route.params.categoryId === 'starred'"
-                        to="/starred"
-                        class="text-bold"
-                        clickable
-                        v-ripple
-                    >
-                        <q-item-section avatar>
-                            <q-icon name="star" />
-                        </q-item-section>
-                        <q-item-section>
-                            Prioritaires
-                        </q-item-section>
-                        <q-item-section class="col-shrink" v-if="starredTodos.length">
-                            <q-badge color="pink-3">
-                                {{starredTodos.length}}
-                            </q-badge>
-                        </q-item-section>
-                    </q-item>
-                    <q-item
-                        :active="$route.params.categoryId === category.id"
-                        :key="category.id"
-                        :to="`/${category.id}`"
-                        clickable
-                        v-for="category in store.categories.all"
-                        v-ripple
-                    >
-                        <q-item-section avatar>
-                            <q-icon name="toc" />
-                        </q-item-section>
-                        <q-item-section>
-                            {{ category.title }}
-                        </q-item-section>
-                        <q-item-section class="col-shrink" v-if="tasksByCategory[category.id]">
-                            <q-badge color="pink-3">
-                                {{tasksByCategory[category.id].length}}
-                            </q-badge>
-                        </q-item-section>
+          Essential Links
+        </q-item-label>
+        <EssentialLink
+          v-for="link in essentialLinks"
+          :key="link.title"
+          v-bind="link"
+        />
+      </q-list>
+    </q-drawer>
 
-                        <q-menu
-                            touch-position
-                            context-menu
-                        >
-                            <q-list dense style="min-width: 130px">
-                                <q-item @click="category.editModal()" clickable v-close-popup>
-                                    <q-item-section>Modifier</q-item-section>
-                                </q-item>
-                                <!-- <q-item @click="deleteCategory(category)" clickable v-close-popup>
-                                    <q-item-section>Supprimer</q-item-section>
-                                </q-item> -->
-                            </q-list>
-                        </q-menu>
-                    </q-item>
-
-                </q-list>
-
-                <div class="q-pa-md">
-                    <q-btn @click="store.categories.addModal(null, { userId: store.user.id })" color="pink-5" label="Créer une catégorie" class="full-width" />
-                </div>
-            </q-scroll-area>
-        </q-drawer>
-
-        <q-page-container class="page-container">
-            <router-view />
-        </q-page-container>
-    </q-layout>
-    <Login v-if="store.isReady && !store.user" />
-    <StoreModal />
-  </div>
+    <q-page-container>
+      <router-view />
+    </q-page-container>
+  </q-layout>
 </template>
 
 <script>
-import Login from 'pages/Login.vue'
-import StoreModal from 'components/StoreModal'
-import { groupBy } from 'lodash'
+import EssentialLink from 'components/EssentialLink.vue'
+
+const linksData = [
+  {
+    title: 'Docs',
+    caption: 'quasar.dev',
+    icon: 'school',
+    link: 'https://quasar.dev',
+  },
+  {
+    title: 'Github',
+    caption: 'github.com/quasarframework',
+    icon: 'code',
+    link: 'https://github.com/quasarframework',
+  },
+  {
+    title: 'Discord Chat Channel',
+    caption: 'chat.quasar.dev',
+    icon: 'chat',
+    link: 'https://chat.quasar.dev',
+  },
+  {
+    title: 'Forum',
+    caption: 'forum.quasar.dev',
+    icon: 'record_voice_over',
+    link: 'https://forum.quasar.dev',
+  },
+  {
+    title: 'Twitter',
+    caption: '@quasarframework',
+    icon: 'rss_feed',
+    link: 'https://twitter.quasar.dev',
+  },
+  {
+    title: 'Facebook',
+    caption: '@QuasarFramework',
+    icon: 'public',
+    link: 'https://facebook.quasar.dev',
+  },
+  {
+    title: 'Quasar Awesome',
+    caption: 'Community Quasar projects',
+    icon: 'favorite',
+    link: 'https://awesome.quasar.dev',
+  },
+]
 
 export default {
   name: 'MainLayout',
-  components: { Login, StoreModal },
-  data() {
+  components: { EssentialLink },
+  data () {
     return {
-      leftMenu: true,
+      leftDrawerOpen: false,
+      essentialLinks: linksData,
     }
-  },
-  computed: {
-    starredTodos() {
-      return this.store.tasks.all.filter(({ starred, checked }) => starred && !checked)
-    },
-    tasksByCategory() {
-      return groupBy(this.store.tasks.all.filter(({ checked }) => !checked), 'categoryId')
-    },
-    currentCategoryName() {
-      const title = this.store.categories.all.find(({ id }) => id === this.$route.params.categoryId)?.title
-      return title ? ` - ${title}` : ''
-    },
   },
 }
 </script>
-
-<style lang="stylus">
-.page-container
-  background-size cover
-  background-attachment fixed
-</style>

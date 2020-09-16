@@ -1,31 +1,19 @@
 
 const routes = [
   {
-    path: '/test',
-    component: () => import('pages/Test.vue'),
-  },
-  {
-    path: '/test2',
-    component: () => import('pages/Test2.vue'),
-  },
-  {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      {
-        path: ':categoryId',
-        component: () => import('pages/TodoCategory.vue'),
-      },
+      { path: '', component: () => import('pages/Index.vue') },
     ],
   },
-]
 
-// Always leave this as last one
-if (process.env.MODE !== 'ssr') {
-  routes.push({
+  // Always leave this as last one,
+  // but you can also remove it
+  {
     path: '*',
-    component: () => import('pages/Error404.vue')
-  })
-}
+    component: () => import('pages/Error404.vue'),
+  },
+]
 
 export default routes
