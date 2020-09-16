@@ -18,34 +18,11 @@
     <q-drawer show-if-above v-model="drawer" side="left" bordered>
       <q-scroll-area class="fit">
         <q-list>
-          <div v-for="(item, itemIndex) in tree" :key="itemIndex">
-            <q-expansion-item
-              :icon="iconDict[item.type]"
-              :label="item.title"
-              expand-separator
-              v-if="item.title === 'folder'"
-            >
-              <q-card>
-                <q-card-section>
-                  Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quidem, eius reprehenderit eos corrupti
-                  commodi magni quaerat ex numquam, dolorum officiis modi facere maiores architecto suscipit iste
-                  eveniet doloribus ullam aliquid.
-                </q-card-section>
-              </q-card>
-            </q-expansion-item>
-
-            <q-item :to="{ name: 'Category', params: { categoryId: item._id} }" v-else clickable v-ripple>
-              <q-item-section avatar>
-                <q-icon :name="iconDict[item.type]" />
-              </q-item-section>
-
-              <q-item-section>{{ item.title }}</q-item-section>
-            </q-item>
-          </div>
+          <CategoryItem :tree="tree" />
         </q-list>
 
         <div class="q-pa-md">
-          <q-btn no-caps label="Nouveau" class="full-width" unelevated color="primary" />
+          <q-btn @click="$refs.newCategoryModalRef.initModal()" no-caps label="Nouveau" class="full-width" unelevated color="primary" />
         </div>
       </q-scroll-area>
     </q-drawer>
@@ -72,18 +49,13 @@
       </q-page>
     </q-page-container>
 
+    <new-category-modal @save="addCategory" ref="newCategoryModalRef" />
   </q-layout>
 </template>
 
 <script>
-const tree = [
-  {
-    _id: 'main',
-    type: 'todos',
-    title: 'Principale',
-    items: [],
-  },
-]
+import NewCategoryModal from 'components/NewCategoryModal.vue'
+import CategoryItem from 'components/CategoryItem.vue'
 
 const getNode = (_id, tree) => {
   for (const node of tree) {
@@ -94,14 +66,12 @@ const getNode = (_id, tree) => {
 
 export default {
   name: 'Todos',
+  components: { NewCategoryModal, CategoryItem },
   data () {
     return {
       currentTodoInput: '',
       drawer: true,
-      tree,
-      iconDict: {
-        todos: 'reorder',
-      },
+      tree: [],
     }
   },
   computed: {
@@ -118,6 +88,9 @@ export default {
         title: this.currentTodoInput,
       })
       this.currentTodoInput = ''
+    },
+    addCategory (category) {
+      this.tree.push(category)
     },
   },
 }
