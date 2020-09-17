@@ -44,5 +44,5 @@
       }
     }
   },
-  "mongodb": "mongodb://localhost:27017/api"
+  "mongodb": "mongodb://localhost:27017/simpletodosapi"
 }
