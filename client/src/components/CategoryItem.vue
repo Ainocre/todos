@@ -1,9 +1,12 @@
 <template>
-  <draggable :animation="150" :value="value" @input="$emit('input', $event)">
-    <div v-for="(item, itemIndex) in value" :key="itemIndex">
+  <draggable :animation="150" :value="value" @input="$emit('input', $event)" v-bind="dragOptions">
+    <div v-for="item in value" :key="item._id">
       <q-expansion-item
+        :content-inset-level="0.5"
         :icon="iconDict[item.type]"
         :label="item.title"
+        :ref="item._id"
+        @dragenter="dragenter(item._id)"
         expand-separator
         v-if="item.type === 'folder'"
       >
@@ -28,20 +31,35 @@
 <script>
 import draggable from 'vuedraggable'
 
+const dragOptions = {
+  animation: 0,
+  group: 'description',
+  disabled: false,
+  ghostClass: 'ghost',
+}
+
+const iconDict = {
+  todos: 'reorder',
+  folder: 'folder',
+  calc: 'calculate',
+  docs: 'menu_book',
+  memos: 'sensor_door',
+}
+
 export default {
   name: 'CategoryItems',
-  props: ['value'],
+  props: ['value', 'list'],
   components: { draggable },
   data () {
     return {
-      iconDict: {
-        todos: 'reorder',
-        folder: 'folder',
-        calc: 'calculate',
-        docs: 'menu_book',
-        memos: 'sensor_door',
-      },
+      iconDict,
+      dragOptions,
     }
+  },
+  methods: {
+    dragenter (id) {
+      this.$refs[id][0].showing = true
+    },
   },
 }
 </script>

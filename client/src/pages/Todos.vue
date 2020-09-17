@@ -40,11 +40,11 @@
 
           <draggable :animation="150" v-model="currentItems">
             <q-card
-              :key="itemIndex"
+              :key="item._id"
               bordered
               class="q-pa-xs cursor-pointer q-mb-sm"
               flat
-              v-for="(item, itemIndex) in currentItems"
+              v-for="item in currentItems"
             >
               <q-checkbox :value="false" />
               {{item.title}}
@@ -59,6 +59,7 @@
 </template>
 
 <script>
+import { uid } from 'quasar'
 import draggable from 'vuedraggable'
 import NewCategoryModal from 'components/NewCategoryModal.vue'
 import CategoryItem from 'components/CategoryItem.vue'
@@ -96,6 +97,7 @@ export default {
   methods: {
     addTodo () {
       this.currentNode.items.push({
+        _id: uid(),
         title: this.currentTodoInput,
       })
       this.currentTodoInput = ''
