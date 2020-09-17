@@ -15,7 +15,7 @@
         >
           <q-tab name="todos" label="Todos" />
           <q-tab name="folder" label="Dossier" />
-          <q-tab name="calc" label="Calcule" />
+          <q-tab name="calc" label="Calcul" />
           <q-tab name="docs" label="Documents" />
           <q-tab name="memos" label="Mémos" />
         </q-tabs>

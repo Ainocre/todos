@@ -1,7 +1,6 @@
 
 <template>
   <q-layout view="hHh LpR fFf">
-
     <q-header reveal bordered class="bg-primary text-white">
       <q-toolbar>
         <q-btn dense flat round icon="menu" @click="drawer = !drawer" />
@@ -18,7 +17,7 @@
     <q-drawer show-if-above v-model="drawer" side="left" bordered>
       <q-scroll-area class="fit">
         <q-list>
-          <CategoryItem :tree="tree" />
+          <CategoryItem v-model="tree" />
         </q-list>
 
         <div class="q-pa-md">
@@ -28,9 +27,9 @@
     </q-drawer>
 
     <q-page-container>
-      <q-page padding>
-        <div class="column q-col-gutter-sm">
-          <div class="q-mb-sm">
+      <q-page padding v-if="$route.params.categoryId">
+        <div class="column">
+          <div class="q-mb-md">
             <q-input
               @keyup.enter="addTodo"
               filled
@@ -39,12 +38,18 @@
             />
           </div>
 
-          <div v-for="(item, itemIndex) in currentItems" :key="itemIndex">
-            <q-card bordered flat class="q-pa-xs cursor-pointer">
+          <draggable :animation="150" v-model="currentItems">
+            <q-card
+              :key="itemIndex"
+              bordered
+              class="q-pa-xs cursor-pointer q-mb-sm"
+              flat
+              v-for="(item, itemIndex) in currentItems"
+            >
               <q-checkbox :value="false" />
               {{item.title}}
             </q-card>
-          </div>
+          </draggable>
         </div>
       </q-page>
     </q-page-container>
@@ -54,6 +59,7 @@
 </template>
 
 <script>
+import draggable from 'vuedraggable'
 import NewCategoryModal from 'components/NewCategoryModal.vue'
 import CategoryItem from 'components/CategoryItem.vue'
 
@@ -66,7 +72,7 @@ const getNode = (_id, tree) => {
 
 export default {
   name: 'Todos',
-  components: { NewCategoryModal, CategoryItem },
+  components: { NewCategoryModal, CategoryItem, draggable },
   data () {
     return {
       currentTodoInput: '',
@@ -78,8 +84,13 @@ export default {
     currentNode () {
       return getNode(this.$route.params.categoryId, this.tree)
     },
-    currentItems () {
-      return this.currentNode?.items || []
+    currentItems: {
+      get () {
+        return this.currentNode?.items || []
+      },
+      set (newItems) {
+        this.currentNode.items = newItems
+      },
     },
   },
   methods: {

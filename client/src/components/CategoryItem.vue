@@ -1,13 +1,13 @@
 <template>
-  <div>
-    <div v-for="(item, itemIndex) in tree" :key="itemIndex">
+  <draggable :animation="150" :value="value" @input="$emit('input', $event)">
+    <div v-for="(item, itemIndex) in value" :key="itemIndex">
       <q-expansion-item
         :icon="iconDict[item.type]"
         :label="item.title"
         expand-separator
         v-if="item.type === 'folder'"
       >
-        <CategoryItem :tree="item.items" />
+        <CategoryItems v-model="item.items" />
       </q-expansion-item>
 
       <q-item :to="{ name: 'Category', params: { categoryId: item._id} }" v-else clickable v-ripple>
@@ -16,15 +16,22 @@
         </q-item-section>
 
         <q-item-section>{{ item.title }}</q-item-section>
+
+        <q-item-section v-if="item.items.length" side>
+          <q-badge color="primary" text-color="white" :label="item.items.length" />
+        </q-item-section>
       </q-item>
     </div>
-  </div>
+  </draggable>
 </template>
 
 <script>
+import draggable from 'vuedraggable'
+
 export default {
-  name: 'CategoryItem',
-  props: ['tree'],
+  name: 'CategoryItems',
+  props: ['value'],
+  components: { draggable },
   data () {
     return {
       iconDict: {
