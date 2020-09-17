@@ -62,7 +62,7 @@
             outlined
             required
             type="password"
-            v-model="user.pwd"
+            v-model="user.password"
           />
           <q-input
             class="q-mb-sm"
@@ -71,7 +71,7 @@
             required
             type="password"
             v-if="mode === 'signup'"
-            v-model="rpwd"
+            v-model="rpassword"
           />
 
           <q-btn
@@ -88,25 +88,31 @@
 </template>
 
 <script>
+import { noop } from 'lodash'
+
 export default {
   name: 'Login',
   data () {
     return {
       isLoading: false,
-      mode: 'signup', // signin - signup
+      mode: 'signin', // signin - signup
       user: {
         role: 'user', // user - of
-        email: 'gui@gmail.com',
-        firstName: 'Gui',
-        lastName: 'Bou',
-        pwd: 'azeaze',
+        email: '',
+        firstName: '',
+        lastName: '',
+        password: '',
       },
-      rpwd: 'azeaze',
+      rpassword: '',
     }
   },
   methods: {
     submit () {
-
+      this.$store[this.mode](this.user)
+        .then(() => {
+          this.$router.push({ name: 'Todos' })
+        })
+        .catch(noop)
     },
   },
 }

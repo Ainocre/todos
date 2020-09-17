@@ -8,6 +8,10 @@ module.exports = function (app) {
   const schema = new mongooseClient.Schema({
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
+    role: {
+      type: String,
+      enum: ['user'],
+    },
 
     openTodos: [Object],
 

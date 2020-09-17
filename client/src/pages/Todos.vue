@@ -11,6 +11,8 @@
           </q-avatar>
           Simple todos
         </q-toolbar-title>
+
+        <q-btn outline label="Se déconnecter" @click="signout" />
       </q-toolbar>
     </q-header>
 
@@ -113,6 +115,10 @@ export default {
     },
     addCategory (category) {
       this.tree.push(category)
+    },
+    async signout () {
+      await this.$store.signout()
+      this.$router.push({ name: 'Login' })
     },
   },
 }

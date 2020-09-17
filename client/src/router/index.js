@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import feathers from 'boot/feathers.js'
+import { noop } from 'lodash'
+import store from 'boot/store.js'
 
 import routes from './routes'
 
@@ -15,7 +16,7 @@ Vue.use(VueRouter)
  * with the Router instance.
  */
 
-export default function (/* { store, ssrContext } */) {
+export default async function (/* { store, ssrContext } */) {
   const Router = new VueRouter({
     scrollBehavior: () => ({ x: 0, y: 0 }),
     routes,
@@ -27,9 +28,12 @@ export default function (/* { store, ssrContext } */) {
     base: process.env.VUE_ROUTER_BASE,
   })
 
+  await store.reAuthenticate().catch(noop)
+
   Router.beforeEach((to, from, next) => {
-    if (!feathers.authenticated && to.name !== 'Login') next({ name: 'Login' })
-    next()
+    if (to.name === 'Login' && store.user) next({ name: 'Todos' })
+    else if (!store.user && to.name !== 'Login') next({ name: 'Login' })
+    else next()
   })
 
   return Router
