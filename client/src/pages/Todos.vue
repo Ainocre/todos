@@ -17,7 +17,7 @@
     <q-drawer show-if-above v-model="drawer" side="left" bordered>
       <q-scroll-area class="fit">
         <q-list>
-          <CategoryItem v-model="tree" />
+          <CategoryItem @drop="moveItem" v-model="tree" />
         </q-list>
 
         <div class="q-pa-md">
@@ -40,6 +40,7 @@
 
           <draggable :animation="150" v-model="currentItems">
             <q-card
+              @dragstart="itemToMove = item"
               :key="item._id"
               bordered
               class="q-pa-xs cursor-pointer q-mb-sm"
@@ -79,6 +80,7 @@ export default {
       currentTodoInput: '',
       drawer: true,
       tree: [],
+      itemToMove: null,
     }
   },
   computed: {
@@ -95,6 +97,13 @@ export default {
     },
   },
   methods: {
+    moveItem (toCategoryId) {
+      const fromNode = this.currentNode
+      const toNode = getNode(toCategoryId, this.tree)
+
+      toNode.items.push({ ...this.itemToMove })
+      fromNode.items.splice(fromNode.items.findIndex((i) => i._id === this.itemToMove._id), 1)
+    },
     addTodo () {
       this.currentNode.items.push({
         _id: uid(),

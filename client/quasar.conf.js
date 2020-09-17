@@ -42,10 +42,6 @@ module.exports = function (/* ctx */) {
     // Full list of options: https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-build
     build: {
       vueRouterMode: 'history', // available values: 'hash', 'history'
-      options: {
-        formatter: require('eslint').CLIEngine.getFormatter('stylish'),
-        emitWarning: true,
-      },
 
       // transpile: false,
 
@@ -66,10 +62,13 @@ module.exports = function (/* ctx */) {
       // https://quasar.dev/quasar-cli/handling-webpack
       extendWebpack (cfg) {
         cfg.module.rules.push({
-          enforce: 'pre',
           test: /\.(js|vue)$/,
           loader: 'eslint-loader',
           exclude: /node_modules/,
+          options: {
+            formatter: require('eslint').CLIEngine.getFormatter('stylish'),
+            emitWarning: true,
+          },
         })
       },
     },
