@@ -1,0 +1,36 @@
+{
+  "env": {
+    "es6": true,
+    "node": true,
+    "jest": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2018
+  },
+  "extends": [
+    "standard"
+  ],
+  "rules": {
+    // allow async-await
+    "generator-star-spacing": "off",
+    // allow paren-less arrow functions
+    "arrow-parens": "off",
+    "one-var": "off",
+    "padding-line-between-statements": [
+      "error",
+      { "blankLine": "always", "prev": "*", "next": "return" },
+      { "blankLine": "always", "prev": ["const", "let", "var"], "next": "*"},
+      { "blankLine": "any",    "prev": ["const", "let", "var"], "next": ["const", "let", "var"]}
+    ],
+
+    "comma-dangle": ["error", "always-multiline"],
+    "no-async-promise-executor": "off",
+    "no-var": "error",
+
+    "import/first": "off",
+    "import/extensions": "off",
+    "import/no-unresolved": "off",
+    "import/no-extraneous-dependencies": "off",
+    "prefer-promise-reject-errors": "off"
+  }
+}
